@@ -26,12 +26,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.11" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\MiniLibrary.Domain\MiniLibrary.Domain.csproj" />
     <ProjectReference Include="..\..\src\MiniLibrary.Application\MiniLibrary.Application.csproj" />
     <ProjectReference Include="..\..\src\MiniLibrary.Infrastructure\MiniLibrary.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\MiniLibrary.API\MiniLibrary.API.csproj" />
   </ItemGroup>
 
 </Project>
