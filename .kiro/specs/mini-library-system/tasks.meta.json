@@ -1,0 +1,661 @@
+{
+  "pbtResults": {
+    "2.5 Write property tests for domain value objects and entities": {
+      "status": "passed",
+      "lastRunTimestamp": 1786036903935
+    }
+  },
+  "executionHistory": {
+    "1.1 Create .NET solution with Clean Architecture projects": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034139767
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034152945
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034956816
+      }
+    ],
+    "1.2 Configure EF Core DbContext and entity configurations": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034139943
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034964951
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036612450
+      }
+    ],
+    "1.3 Create initial EF Core migration and Docker Compose setup": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034139982
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036625518
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037552335
+      }
+    ],
+    "1.4 Configure API middleware pipeline and cross-cutting concerns": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140075
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036626188
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037553400
+      }
+    ],
+    "2.1 Create domain entities: Book, BookLoan, User, Rating, WishlistEntry, Badge, Notification, ReviewVote, BookEmbedding": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140123
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034965926
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036615259
+      }
+    ],
+    "2.2 Create value objects: Isbn, DateRange, RelevanceScore": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140183
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034966718
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036613405
+      }
+    ],
+    "2.3 Define domain events: BookCreatedEvent, BookUpdatedEvent, BookReturnedEvent, BadgeEarnedEvent, RatingCreatedEvent": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140244
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034967682
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036611539
+      }
+    ],
+    "2.4 Define repository interfaces and service interfaces": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140306
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034968587
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036614103
+      }
+    ],
+    "2.5 Write property tests for domain value objects and entities": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140343
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786036627052
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037554182
+      }
+    ],
+    "3.1 Implement BookRepository with EF Core": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140395
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037562331
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786038998459
+      }
+    ],
+    "3.2 Implement LoanRepository with EF Core": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140453
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037563052
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786038999174
+      }
+    ],
+    "3.3 Implement RatingRepository, WishlistRepository, BadgeRepository, NotificationRepository, UserRepository": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140496
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037563970
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786039000015
+      }
+    ],
+    "3.4 Implement MemoryCacheService": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140541
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037564766
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786039000923
+      }
+    ],
+    "4.1 Configure OAuth 2.0 authentication (Google + Microsoft)": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140583
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786039018261
+      }
+    ],
+    "4.2 Implement role-based authorization and user provisioning": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140623
+      },
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786039019119
+      }
+    ],
+    "4.3 Write property tests for role-based access control": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140662
+      }
+    ],
+    "5. Checkpoint - Foundation layers complete": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140712
+      }
+    ],
+    "6.1 Implement CreateBook command with FluentValidation": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140756
+      }
+    ],
+    "6.2 Implement UpdateBook and DeleteBook commands": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140807
+      }
+    ],
+    "6.3 Implement BooksController with REST endpoints": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140842
+      }
+    ],
+    "6.4 Write property tests for book validation and deletion invariant": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140888
+      }
+    ],
+    "7.1 Implement CheckOutBook command": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140942
+      }
+    ],
+    "7.2 Implement CheckInBook command": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034140981
+      }
+    ],
+    "7.3 Implement loan history query and LoansController": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141043
+      }
+    ],
+    "7.4 Write property tests for loan preconditions and correctness": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141093
+      }
+    ],
+    "8.1 Implement SearchBooks query with filters and pagination": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141143
+      }
+    ],
+    "8.2 Implement SearchController": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141189
+      }
+    ],
+    "8.3 Write property tests for search result correctness": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141225
+      }
+    ],
+    "9.1 Implement OpenAI Embedding Service": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141273
+      }
+    ],
+    "9.2 Implement Semantic Search query handler": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141311
+      }
+    ],
+    "9.3 Implement embedding generation on book create/update (domain event handler)": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141362
+      }
+    ],
+    "9.4 Write property tests for semantic search invariants": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141427
+      }
+    ],
+    "10. Checkpoint - Core backend features complete": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141489
+      }
+    ],
+    "11.1 Implement OpenAI Recommendation Service": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141546
+      }
+    ],
+    "11.2 Implement GetRecommendations query with caching": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141582
+      }
+    ],
+    "11.3 Write property tests for recommendation exclusion": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141624
+      }
+    ],
+    "12.1 Implement User Management commands and queries": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141677
+      }
+    ],
+    "12.2 Implement Dashboard statistics queries": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141723
+      }
+    ],
+    "13.1 Implement Rating commands": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141761
+      }
+    ],
+    "13.2 Implement Rating queries and controller": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141800
+      }
+    ],
+    "13.3 Write property tests for rating average correctness": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141842
+      }
+    ],
+    "14.1 Implement Book Rankings query": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141878
+      }
+    ],
+    "14.2 Implement Reader Rankings query": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141924
+      }
+    ],
+    "14.3 Write property tests for ranking invariants": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034141978
+      }
+    ],
+    "15.1 Implement Wishlist commands and queries": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142042
+      }
+    ],
+    "15.2 Implement Notification system": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142083
+      }
+    ],
+    "15.3 Implement loan expiration alerts (background job)": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142127
+      }
+    ],
+    "15.4 Write property tests for wishlist size limit": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142171
+      }
+    ],
+    "16.1 Implement Badge evaluation logic": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142209
+      }
+    ],
+    "16.2 Implement Gamification queries and controller": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142263
+      }
+    ],
+    "16.3 Write property tests for badge criteria evaluation": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142306
+      }
+    ],
+    "17. Checkpoint - All backend features complete": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142357
+      }
+    ],
+    "18.1 Implement standard paginated response wrapper and metadata": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142392
+      }
+    ],
+    "18.2 Write property tests for pagination metadata consistency and serialization round-trip": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142429
+      }
+    ],
+    "19.1 Initialize React + TypeScript + Vite project": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142467
+      }
+    ],
+    "19.2 Implement theme, design system, and layout": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142516
+      }
+    ],
+    "19.3 Implement API client and authentication context": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142598
+      }
+    ],
+    "20.1 Implement Book Catalog feature module": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142649
+      }
+    ],
+    "20.2 Implement Loan feature module": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142696
+      }
+    ],
+    "20.3 Implement Search and Semantic Search features": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142745
+      }
+    ],
+    "21.1 Implement Recommendations and Dashboard": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142790
+      }
+    ],
+    "21.2 Implement Ratings, Rankings, and Wishlist features": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142840
+      }
+    ],
+    "21.3 Implement Gamification, Notifications, and User Management": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142883
+      }
+    ],
+    "22. Checkpoint - Frontend feature modules complete": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142940
+      }
+    ],
+    "23.1 Configure GitHub Actions CI pipeline": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034142991
+      }
+    ],
+    "23.2 Configure GitHub Actions CD pipeline and Docker images": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034143034
+      }
+    ],
+    "23.3 Create seed data script": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034143074
+      }
+    ],
+    "24.1 Wire all controllers, DI registration, and integration verification": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034143125
+      }
+    ],
+    "24.2 Write integration tests for end-to-end flows": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034143178
+      }
+    ],
+    "25. Final checkpoint - System complete": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786034143227
+      }
+    ],
+    "1. Set up solution structure and core infrastructure": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037553453
+      }
+    ],
+    "2. Implement Domain Layer entities and value objects": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786037554248
+      }
+    ],
+    "3. Implement Infrastructure Layer - Repository implementations": [
+      {
+        "executionId": "f17c944b-678a-4e30-85eb-50b0003e1c3b",
+        "chatSessionId": "sess_2b98ee1b-0a99-4ed0-acbe-4e6518bacd45",
+        "timestamp": 1786039000964
+      }
+    ]
+  }
+}
