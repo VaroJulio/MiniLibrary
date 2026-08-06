@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Document Feature Changes",
+      "trigger": "PostTaskExec",
+      "description": "Reminds to update documentation (changelog, API docs, diagrams) after completing a spec task",
+      "action": {
+        "type": "agent",
+        "prompt": "After completing this task, ensure documentation is updated according to the project's documentation standards:\n1. Update docs/CHANGELOG.md with the change (Added/Changed/Fixed format, include Jira issue ID if applicable)\n2. If new API endpoints were added or modified, verify Swagger/OpenAPI docs are accurate\n3. If the change affects system architecture (new services, integrations, data models), update the relevant diagram in docs/architecture/\n4. If setup instructions changed, update README.md\n\nDocumentation is part of \"Done\" — the task is not complete without it."
+      }
+    }
+  ]
+}

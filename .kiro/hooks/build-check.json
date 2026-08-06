@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Build Check on Session Start",
+      "trigger": "SessionStart",
+      "action": {
+        "type": "command",
+        "command": "if [ -f MiniLibrary.sln ]; then dotnet build MiniLibrary.sln --verbosity quiet 2>&1 | tail -5; fi"
+      }
+    }
+  ]
+}

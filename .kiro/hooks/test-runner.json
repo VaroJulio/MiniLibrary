@@ -1,0 +1,13 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run Related Unit Tests After Task",
+      "trigger": "PostTaskExec",
+      "action": {
+        "type": "command",
+        "command": "dotnet test tests/MiniLibrary.UnitTests --no-build --verbosity minimal 2>&1 | tail -20"
+      }
+    }
+  ]
+}

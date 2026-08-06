@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Sync Jira Issue Status",
+      "trigger": "PostTaskExec",
+      "description": "Reminds to update Jira issue status after completing a spec task",
+      "action": {
+        "type": "agent",
+        "prompt": "After completing this task, check if there's a Jira issue associated with the work (look for MINI-XX references in branch name, commit messages, or task description). If found:\n1. Transition the Jira issue to the appropriate status (In Review if PR was created, Done if merged)\n2. Add a comment on the Jira issue summarizing what was implemented\n\nUse the mcp-atlassian tools (jira_transition_issue, jira_add_comment) to update Jira. If no Jira issue is associated, skip this step silently."
+      }
+    }
+  ]
+}

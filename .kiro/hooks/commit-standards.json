@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Validate Conventional Commits",
+      "trigger": "PreToolUse",
+      "matcher": "git_commit",
+      "action": {
+        "type": "agent",
+        "prompt": "Before committing, verify the commit message follows Conventional Commits format: feat:, fix:, docs:, test:, chore:, refactor:. The message should be concise and descriptive. If the message doesn't follow this format, suggest a corrected version."
+      }
+    }
+  ]
+}
