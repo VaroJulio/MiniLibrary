@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY src/MiniLibrary.Domain/*.csproj MiniLibrary.Domain/
+COPY src/MiniLibrary.Application/*.csproj MiniLibrary.Application/
+COPY src/MiniLibrary.Infrastructure/*.csproj MiniLibrary.Infrastructure/
+COPY src/MiniLibrary.API/*.csproj MiniLibrary.API/
+RUN dotnet restore MiniLibrary.API/MiniLibrary.API.csproj
+
+COPY src/ .
+RUN dotnet publish MiniLibrary.API/MiniLibrary.API.csproj -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "MiniLibrary.API.dll"]

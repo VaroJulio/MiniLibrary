@@ -1,0 +1,38 @@
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+publish/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Environment
+.env
+*.local
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test Results
+TestResults/
+coverage/
+
+# Kiro
+.kiro/settings/
+!.kiro/steering/
+!.kiro/hooks/
