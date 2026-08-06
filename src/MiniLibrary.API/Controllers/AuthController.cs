@@ -1,11 +1,8 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using MiniLibrary.API.Extensions;
+using MiniLibrary.Application.Interfaces;
 using MiniLibrary.Domain.Enumerations;
 using MiniLibrary.Domain.Interfaces;
 using DomainUser = MiniLibrary.Domain.Entities.User;
@@ -20,16 +17,16 @@ namespace MiniLibrary.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
-    private readonly IConfiguration _configuration;
+    private readonly IJwtTokenService _jwtTokenService;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         IUserRepository userRepository,
-        IConfiguration configuration,
+        IJwtTokenService jwtTokenService,
         ILogger<AuthController> logger)
     {
         _userRepository = userRepository;
-        _configuration = configuration;
+        _jwtTokenService = jwtTokenService;
         _logger = logger;
     }
 
@@ -82,7 +79,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { error = "Unable to determine user identity from provider." });
         }
 
-        // User provisioning: check if user exists by ExternalId+Provider, create with Member role if new
+        // User provisioning: check if user exists by ExternalId+Provider, create with Member role if new (Req 6.3)
         var user = await _userRepository.GetByExternalIdAsync(externalId, provider, ct);
 
         if (user is null)
@@ -100,41 +97,65 @@ public class AuthController : ControllerBase
             await _userRepository.AddAsync(user, ct);
         }
 
-        // Generate JWT token with user's role claim
-        var accessToken = GenerateJwtToken(user);
-        var refreshToken = GenerateRefreshToken();
+        // Generate JWT access token (60-minute expiration) and refresh token (7-day expiration)
+        var accessToken = _jwtTokenService.GenerateAccessToken(user);
+        var refreshToken = _jwtTokenService.GenerateRefreshToken();
+        _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
 
-        return Ok(new
-        {
-            accessToken,
-            refreshToken,
-            expiresIn = 3600, // 60 minutes in seconds
-            user = new
-            {
-                id = user.Id,
-                email = user.Email,
-                fullName = user.FullName,
-                role = user.Role.ToString()
-            }
-        });
+        return Ok(new AuthTokenResponse(
+            AccessToken: accessToken,
+            RefreshToken: refreshToken,
+            ExpiresIn: 3600,
+            User: new AuthUserResponse(
+                Id: user.Id,
+                Email: user.Email,
+                FullName: user.FullName,
+                Role: user.Role.ToString())));
     }
 
     /// <summary>
     /// Refreshes an expired JWT token using a valid refresh token.
+    /// Issues a new access token (60-min) and a new refresh token (7-day) without re-authentication.
     /// </summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
-    public IActionResult Refresh([FromBody] RefreshTokenRequest request)
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request, CancellationToken ct)
     {
-        // In a full implementation, validate the refresh token against stored tokens.
-        // For now, this endpoint documents the contract.
         if (string.IsNullOrEmpty(request.RefreshToken))
         {
             return BadRequest(new { error = "Refresh token is required." });
         }
 
-        // TODO: Validate refresh token against stored tokens and issue new JWT
-        return Unauthorized(new { error = "Invalid or expired refresh token." });
+        var userId = _jwtTokenService.ValidateRefreshToken(request.RefreshToken);
+        if (userId is null)
+        {
+            return Unauthorized(new { error = "Invalid or expired refresh token." });
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId.Value, ct);
+        if (user is null)
+        {
+            _logger.LogWarning("Refresh token valid but user {UserId} not found.", userId.Value);
+            _jwtTokenService.RevokeRefreshToken(userId.Value);
+            return Unauthorized(new { error = "User not found." });
+        }
+
+        // Revoke old refresh token and issue new token pair (token rotation)
+        _jwtTokenService.RevokeRefreshToken(user.Id);
+
+        var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
+        var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
+        _jwtTokenService.StoreRefreshToken(user.Id, newRefreshToken);
+
+        return Ok(new AuthTokenResponse(
+            AccessToken: newAccessToken,
+            RefreshToken: newRefreshToken,
+            ExpiresIn: 3600,
+            User: new AuthUserResponse(
+                Id: user.Id,
+                Email: user.Email,
+                FullName: user.FullName,
+                Role: user.Role.ToString())));
     }
 
     /// <summary>
@@ -156,52 +177,47 @@ public class AuthController : ControllerBase
             return NotFound();
         }
 
-        return Ok(new
-        {
-            id = user.Id,
-            email = user.Email,
-            fullName = user.FullName,
-            role = user.Role.ToString(),
-            createdAt = user.CreatedAt
-        });
+        return Ok(new AuthUserResponse(
+            Id: user.Id,
+            Email: user.Email,
+            FullName: user.FullName,
+            Role: user.Role.ToString()));
     }
 
-    private string GenerateJwtToken(DomainUser user)
+    /// <summary>
+    /// Logs out the current user by revoking their refresh token.
+    /// </summary>
+    [HttpPost("logout")]
+    [Authorize]
+    public IActionResult Logout()
     {
-        var jwtSettings = _configuration.GetSection("Jwt");
-        var secret = jwtSettings["Secret"]
-            ?? throw new InvalidOperationException("Jwt:Secret must be configured.");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
+        var userId = User.GetUserId();
+        if (userId is not null)
         {
-            new Claim("userId", user.Id.ToString()),
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.Role.ToString()),
-            new Claim("role", user.Role.ToString())
-        };
+            _jwtTokenService.RevokeRefreshToken(userId.Value);
+        }
 
-        var token = new JwtSecurityToken(
-            issuer: jwtSettings["Issuer"] ?? "MiniLibrary",
-            audience: jwtSettings["Audience"] ?? "MiniLibrary",
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(60),
-            signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
-
-    private static string GenerateRefreshToken()
-    {
-        var randomBytes = new byte[64];
-        using var rng = System.Security.Cryptography.RandomNumberGenerator.Create();
-        rng.GetBytes(randomBytes);
-        return Convert.ToBase64String(randomBytes);
+        return NoContent();
     }
 }
+
+/// <summary>
+/// Response model for authentication token endpoints.
+/// </summary>
+public record AuthTokenResponse(
+    string AccessToken,
+    string RefreshToken,
+    int ExpiresIn,
+    AuthUserResponse User);
+
+/// <summary>
+/// User details returned in auth responses.
+/// </summary>
+public record AuthUserResponse(
+    Guid Id,
+    string Email,
+    string FullName,
+    string Role);
 
 /// <summary>
 /// Request model for token refresh.

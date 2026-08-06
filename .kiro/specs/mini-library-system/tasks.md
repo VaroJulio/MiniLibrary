@@ -97,8 +97,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Support configurable expiration per cache entry
     - _Requirements: 5.6, 17.6, 19.9_
 
-- [ ] 4. Implement Authentication and Authorization
-  - [ ] 4.1 Configure OAuth 2.0 authentication (Google + Microsoft)
+- [x] 4. Implement Authentication and Authorization
+  - [x] 4.1 Configure OAuth 2.0 authentication (Google + Microsoft)
     - Configure Google OAuth 2.0 authentication scheme
     - Configure Microsoft OAuth 2.0 authentication scheme
     - Implement JWT token generation with 60-minute expiration
@@ -106,22 +106,22 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement `AuthController` with login, callback, and refresh endpoints
     - _Requirements: 6.1, 6.2, 6.4, 6.5_
 
-  - [ ] 4.2 Implement role-based authorization and user provisioning
+  - [x] 4.2 Implement role-based authorization and user provisioning
     - Implement automatic user creation with Member role on first SSO login
     - Configure role-based authorization policies: Admin, Librarian, Member
     - Implement `[Authorize]` attribute usage on controllers with role requirements
     - Implement permission matrix per role as defined in Requirements 7.4
     - _Requirements: 6.3, 6.6, 6.7, 7.4, 7.5_
 
-  - [ ] 4.3 Write property tests for role-based access control
+  - [x] 4.3 Write property tests for role-based access control
     - **Property 8: Role-Based Access Control** — Generate random (role, endpoint) pairs and verify correct 403/200 responses
     - **Validates: Requirements 1.9, 6.6, 7.5, 8.5, 16.2, 17.7, 20.9**
 
-- [ ] 5. Checkpoint - Foundation layers complete
+- [x] 5. Checkpoint - Foundation layers complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Implement Book Catalog Management (CRUD)
-  - [ ] 6.1 Implement CreateBook command with FluentValidation
+  - [x] 6.1 Implement CreateBook command with FluentValidation
     - Create `CreateBookCommand`, `CreateBookCommandHandler`, and `CreateBookCommandValidator`
     - Validate: title (1–255 chars), author (1–200 chars), ISBN (ISBN-13 format, unique), year (1450–current), description (max 2000 chars), category (max 100 chars)
     - Set initial status to Available, return created resource with HTTP 201
