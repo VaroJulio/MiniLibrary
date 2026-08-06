@@ -1,17 +1,36 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Stage 1: Restore dependencies
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS restore
 WORKDIR /src
 
-COPY src/MiniLibrary.Domain/*.csproj MiniLibrary.Domain/
-COPY src/MiniLibrary.Application/*.csproj MiniLibrary.Application/
-COPY src/MiniLibrary.Infrastructure/*.csproj MiniLibrary.Infrastructure/
-COPY src/MiniLibrary.API/*.csproj MiniLibrary.API/
-RUN dotnet restore MiniLibrary.API/MiniLibrary.API.csproj
+# Copy solution and project files for restore
+COPY MiniLibrary.sln ./
+COPY Directory.Build.props ./
+COPY src/MiniLibrary.Domain/MiniLibrary.Domain.csproj src/MiniLibrary.Domain/
+COPY src/MiniLibrary.Application/MiniLibrary.Application.csproj src/MiniLibrary.Application/
+COPY src/MiniLibrary.Infrastructure/MiniLibrary.Infrastructure.csproj src/MiniLibrary.Infrastructure/
+COPY src/MiniLibrary.API/MiniLibrary.API.csproj src/MiniLibrary.API/
 
-COPY src/ .
-RUN dotnet publish MiniLibrary.API/MiniLibrary.API.csproj -c Release -o /app/publish
+RUN dotnet restore src/MiniLibrary.API/MiniLibrary.API.csproj
 
+# Stage 2: Build and publish
+FROM restore AS build
+COPY src/ src/
+RUN dotnet publish src/MiniLibrary.API/MiniLibrary.API.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore
+
+# Stage 3: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# Create non-root user for security
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
 COPY --from=build /app/publish .
+
 EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
 ENTRYPOINT ["dotnet", "MiniLibrary.API.dll"]
