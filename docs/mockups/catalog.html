@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniLibrary - Catálogo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
+        
+        /* Reuse sidebar from dashboard */
+        .sidebar {
+            position: fixed; left: 0; top: 0; bottom: 0;
+            width: 260px; background: #1E3A5F; color: white; padding: 24px 0; z-index: 100;
+        }
+        .sidebar-logo { font-size: 1.25rem; font-weight: 700; padding: 0 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
+        .nav-section { padding: 0 12px; margin-bottom: 24px; }
+        .nav-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.75); text-decoration: none; transition: all 0.15s; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 500; }
+        .nav-item .material-icons-outlined { font-size: 1.25rem; }
+
+        .main { margin-left: 260px; padding: 32px; }
+        
+        /* Search bar */
+        .search-section { margin-bottom: 24px; }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus-within { border-color: #4A6FA5; }
+        .search-bar input {
+            flex: 1;
+            border: none;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            outline: none;
+            background: transparent;
+            font-family: inherit;
+        }
+        .search-bar .search-icon {
+            padding: 8px 16px;
+            color: #64748B;
+        }
+        .search-bar .ai-badge {
+            background: linear-gradient(135deg, #8B5CF6, #6366F1);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 4px;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .filter-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #E2E8F0;
+            background: white;
+            font-size: 0.8rem;
+            color: #64748B;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .filter-chip:hover { border-color: #4A6FA5; color: #1E3A5F; }
+        .filter-chip.active { background: #1E3A5F; color: white; border-color: #1E3A5F; }
+        .filter-chip .material-icons-outlined { font-size: 0.9rem; }
+
+        /* Results header */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .results-count { font-size: 0.9rem; color: #64748B; }
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+        }
+        .view-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+            background: white;
+            color: #64748B;
+            cursor: pointer;
+        }
+        .view-btn.active { background: #1E3A5F; color: white; border-color: #1E3A5F; }
+
+        /* Book grid */
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        .book-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s, transform 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .book-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .book-cover {
+            height: 180px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            position: relative;
+        }
+        .book-cover.c1 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .book-cover.c2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .book-cover.c3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .book-cover.c4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .book-cover.c5 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+        .book-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .book-status.available { background: #D1FAE5; color: #065F46; }
+        .book-status.checked-out { background: #FEE2E2; color: #991B1B; }
+        .book-info {
+            padding: 16px;
+        }
+        .book-title {
+            font-family: 'Merriweather', serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #1E293B;
+            line-height: 1.3;
+        }
+        .book-author {
+            font-size: 0.8rem;
+            color: #64748B;
+            margin-bottom: 8px;
+        }
+        .book-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .book-category {
+            background: #EEF2FF;
+            color: #4338CA;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .book-year { font-size: 0.75rem; color: #94A3B8; }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .page-btn {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #64748B;
+            cursor: pointer;
+        }
+        .page-btn.active { background: #1E3A5F; color: white; border-color: #1E3A5F; }
+        .page-btn:hover:not(.active) { border-color: #4A6FA5; }
+
+        /* Mobile */
+        .mobile-header { display: none; position: fixed; top: 0; left: 0; right: 0; background: white; padding: 12px 16px; border-bottom: 1px solid #E2E8F0; z-index: 99; }
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; padding: 8px 0; z-index: 100; }
+        .bottom-nav-items { display: flex; justify-content: space-around; }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.65rem; color: #64748B; text-decoration: none; }
+        .bottom-nav-item.active { color: #1E3A5F; }
+        .bottom-nav-item .material-icons-outlined { font-size: 1.4rem; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 72px 16px 80px; }
+            .mobile-header { display: flex; align-items: center; justify-content: space-between; }
+            .mobile-header h2 { font-size: 1.1rem; color: #1E3A5F; }
+            .bottom-nav { display: block; }
+            .books-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .book-cover { height: 140px; }
+            .search-bar .ai-badge { display: none; }
+            .results-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+        }
+        @media (max-width: 375px) {
+            .books-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-logo"><span>📚</span> MiniLibrary</div>
+        <div class="nav-section">
+            <div class="nav-label">Principal</div>
+            <a href="dashboard.html" class="nav-item"><span class="material-icons-outlined">dashboard</span> Dashboard</a>
+            <a href="#" class="nav-item active"><span class="material-icons-outlined">library_books</span> Catálogo</a>
+            <a href="my-loans.html" class="nav-item"><span class="material-icons-outlined">swap_horiz</span> Préstamos</a>
+            <a href="recommendations.html" class="nav-item"><span class="material-icons-outlined">auto_awesome</span> Recomendaciones</a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Administración</div>
+            <a href="user-management.html" class="nav-item"><span class="material-icons-outlined">people</span> Usuarios</a>
+        </div>
+    </nav>
+
+    <!-- Mobile header -->
+    <div class="mobile-header">
+        <h2>Catálogo</h2>
+        <span class="material-icons-outlined" style="color:#64748B">tune</span>
+    </div>
+
+    <!-- Main -->
+    <main class="main">
+        <!-- Search -->
+        <div class="search-section">
+            <div class="search-bar">
+                <span class="material-icons-outlined search-icon">search</span>
+                <input type="text" placeholder="Buscar por título, autor, ISBN o categoría...">
+                <button class="ai-badge">
+                    <span class="material-icons-outlined" style="font-size:1rem">auto_awesome</span>
+                    Búsqueda IA
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <span class="filter-chip active">Todos</span>
+            <span class="filter-chip"><span class="material-icons-outlined">check_circle</span> Disponibles</span>
+            <span class="filter-chip">Ficción</span>
+            <span class="filter-chip">Tecnología</span>
+            <span class="filter-chip">Ciencia</span>
+            <span class="filter-chip">Historia</span>
+            <span class="filter-chip"><span class="material-icons-outlined">calendar_today</span> Año</span>
+        </div>
+
+        <!-- Results header -->
+        <div class="results-header">
+            <span class="results-count">2,847 libros encontrados</span>
+            <div class="view-toggle">
+                <button class="view-btn active"><span class="material-icons-outlined" style="font-size:1.1rem">grid_view</span></button>
+                <button class="view-btn"><span class="material-icons-outlined" style="font-size:1.1rem">view_list</span></button>
+            </div>
+        </div>
+
+        <!-- Book grid -->
+        <div class="books-grid">
+            <a href="book-detail.html" class="book-card">
+                <div class="book-cover"><span class="book-status available">Disponible</span>📘</div>
+                <div class="book-info">
+                    <div class="book-title">Clean Code</div>
+                    <div class="book-author">Robert C. Martin</div>
+                    <div class="book-meta">
+                        <span class="book-category">Tecnología</span>
+                        <span class="book-year">2008</span>
+                    </div>
+                </div>
+            </a>
+            <a href="book-detail.html" class="book-card">
+                <div class="book-cover c1"><span class="book-status checked-out">Prestado</span>📕</div>
+                <div class="book-info">
+                    <div class="book-title">The Pragmatic Programmer</div>
+                    <div class="book-author">David Thomas, Andrew Hunt</div>
+                    <div class="book-meta">
+                        <span class="book-category">Tecnología</span>
+                        <span class="book-year">2019</span>
+                    </div>
+                </div>
+            </a>
+            <a href="book-detail.html" class="book-card">
+                <div class="book-cover c2"><span class="book-status available">Disponible</span>📗</div>
+                <div class="book-info">
+                    <div class="book-title">Cien años de soledad</div>
+                    <div class="book-author">Gabriel García Márquez</div>
+                    <div class="book-meta">
+                        <span class="book-category">Ficción</span>
+                        <span class="book-year">1967</span>
+                    </div>
+                </div>
+            </a>
+            <a href="book-detail.html" class="book-card">
+                <div class="book-cover c3"><span class="book-status available">Disponible</span>📙</div>
+                <div class="book-info">
+                    <div class="book-title">Sapiens: A Brief History</div>
+                    <div class="book-author">Yuval Noah Harari</div>
+                    <div class="book-meta">
+                        <span class="book-category">Historia</span>
+                        <span class="book-year">2014</span>
+                    </div>
+                </div>
+            </a>
+            <a href="book-detail.html" class="book-card">
+                <div class="book-cover c4"><span class="book-status checked-out">Prestado</span>📓</div>
+                <div class="book-info">
+                    <div class="book-title">Design Patterns</div>
+                    <div class="book-author">Gang of Four</div>
+                    <div class="book-meta">
+                        <span class="book-category">Tecnología</span>
+                        <span class="book-year">1994</span>
+                    </div>
+                </div>
+            </a>
+            <a href="book-detail.html" class="book-card">
+                <div class="book-cover c5"><span class="book-status available">Disponible</span>📔</div>
+                <div class="book-info">
+                    <div class="book-title">Atomic Habits</div>
+                    <div class="book-author">James Clear</div>
+                    <div class="book-meta">
+                        <span class="book-category">Desarrollo Personal</span>
+                        <span class="book-year">2018</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button class="page-btn"><span class="material-icons-outlined" style="font-size:1rem">chevron_left</span></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">...</button>
+            <button class="page-btn">143</button>
+            <button class="page-btn"><span class="material-icons-outlined" style="font-size:1rem">chevron_right</span></button>
+        </div>
+    </main>
+
+    <!-- Bottom nav (mobile) -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-items">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="material-icons-outlined">dashboard</span>Home</a>
+            <a href="#" class="bottom-nav-item active"><span class="material-icons-outlined">search</span>Buscar</a>
+            <a href="my-loans.html" class="bottom-nav-item"><span class="material-icons-outlined">swap_horiz</span>Préstamos</a>
+            <a href="recommendations.html" class="bottom-nav-item"><span class="material-icons-outlined">auto_awesome</span>Para ti</a>
+            <a href="#" class="bottom-nav-item"><span class="material-icons-outlined">person</span>Perfil</a>
+        </div>
+    </nav>
+</body>
+</html>
