@@ -4,4 +4,14 @@ namespace MiniLibrary.Domain.Events;
 /// Raised when a rating is created or updated.
 /// Triggers ranking cache invalidation.
 /// </summary>
-public record RatingCreatedEvent(Guid RatingId, Guid BookId);
+public sealed class RatingCreatedEvent : DomainEvent
+{
+    public Guid RatingId { get; }
+    public Guid BookId { get; }
+
+    public RatingCreatedEvent(Guid ratingId, Guid bookId)
+    {
+        RatingId = ratingId;
+        BookId = bookId;
+    }
+}
