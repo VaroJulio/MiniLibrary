@@ -207,3 +207,19 @@ MiniLibrary es un sistema de gestión de biblioteca completo que permite adminis
 3. THE API SHALL serializar fechas en formato ISO 8601 (UTC) en todas las respuestas
 4. FOR ALL objetos de respuesta válidos, serializar y deserializar el objeto SHALL producir un objeto equivalente al original (propiedad round-trip)
 5. THE API SHALL incluir un header X-Correlation-Id en todas las respuestas para facilitar el rastreo de solicitudes
+
+### Requisito 15: Experiencia de Usuario y Rendimiento Frontend
+
+**Historia de Usuario:** Como usuario, quiero que la interfaz sea intuitiva, visualmente atractiva y responda de forma instantánea, para tener una experiencia agradable y productiva sin fricciones.
+
+#### Criterios de Aceptación
+
+1. THE Frontend SHALL alcanzar un First Contentful Paint (FCP) menor a 1.5 segundos y un Time to Interactive (TTI) menor a 3 segundos medidos con Lighthouse en condiciones de red 4G simulada
+2. THE Frontend SHALL mostrar un skeleton loader en menos de 100ms tras cualquier interacción que dispare una carga de datos, y el contenido real debe reemplazar al skeleton en menos de 2 segundos bajo condiciones normales de red
+3. THE Frontend SHALL implementar un design system consistente basado en Material UI con paleta de colores custom (primary: Indigo #1E3A5F, secondary: Amber #F59E0B), tipografía Inter/Roboto, y border-radius unificado de 8-12px
+4. THE Frontend SHALL soportar modo claro y modo oscuro con toggle accesible, persistiendo la preferencia del usuario en localStorage y respetando prefers-color-scheme del sistema como valor por defecto
+5. THE Frontend SHALL implementar code splitting por ruta usando React.lazy y Suspense, manteniendo el bundle inicial por debajo de 200KB gzipped
+6. THE Frontend SHALL proporcionar empty states informativos con ilustración, mensaje descriptivo y call-to-action cuando no existan datos que mostrar en cualquier lista o sección
+7. THE Frontend SHALL implementar optimistic updates para acciones frecuentes (check-out, check-in) mostrando el resultado esperado inmediatamente y revirtiendo con notificación si la API retorna error
+8. THE Frontend SHALL mantener un Cumulative Layout Shift (CLS) menor a 0.1 en todas las páginas, reservando espacio para imágenes y contenido dinámico antes de su carga
+9. THE Frontend SHALL pasar todas las pruebas de visual regression en los 5 viewports estándar (375x667, 390x844, 768x1024, 1440x900, 1920x1080) sin diferencias superiores al 0.1% respecto a los baselines aprobados
