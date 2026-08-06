@@ -6,18 +6,20 @@ services:
     container_name: minilibrary-db
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD:-YourStrong!Passw0rd}
     ports:
       - "1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     networks:
       - minilibrary-net
+    restart: unless-stopped
 
   api:
     build:
@@ -26,7 +28,13 @@ services:
     container_name: minilibrary-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniLibraryDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniLibraryDb;User Id=sa;Password=${SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=true;
+      - Jwt__Secret=${JWT_SECRET:-MiniLibrary-Development-Secret-Key-2024-Long-Enough}
+      - Jwt__Issuer=MiniLibrary
+      - Jwt__Audience=MiniLibrary
+      - Jwt__ExpirationMinutes=60
+      - OpenAI__ApiKey=${OPENAI_API_KEY:-}
     ports:
       - "5000:8080"
     depends_on:
@@ -34,6 +42,7 @@ services:
         condition: service_healthy
     networks:
       - minilibrary-net
+    restart: unless-stopped
 
   web:
     build:
@@ -43,14 +52,16 @@ services:
     environment:
       - VITE_API_URL=http://localhost:5000
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - api
     networks:
       - minilibrary-net
+    restart: unless-stopped
 
 volumes:
   sqlserver-data:
+    driver: local
 
 networks:
   minilibrary-net:
