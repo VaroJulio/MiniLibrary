@@ -156,6 +156,15 @@ using (var scope = app.Services.CreateScope())
 
 // Configure the HTTP request pipeline
 
+// Forward headers from reverse proxy (Docker port mapping, nginx)
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
 // Correlation ID must be first so all subsequent middleware/handlers have access
 app.UseMiddleware<CorrelationIdMiddleware>();
 

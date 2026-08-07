@@ -3,12 +3,18 @@ import GoogleIcon from '@mui/icons-material/Google';
 import MicrosoftIcon from '@mui/icons-material/Window';
 
 export default function LoginPage() {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
+
+  // For OAuth, redirect directly to the API (not through nginx proxy)
+  // because Google needs to redirect back to the API's exact host:port
+  const authUrl = apiBaseUrl.startsWith('http') ? apiBaseUrl : 'http://localhost:5000';
+
   const handleGoogleLogin = () => {
-    window.location.href = '/api/auth/login/google';
+    window.location.href = `${authUrl}/auth/login/google`;
   };
 
   const handleMicrosoftLogin = () => {
-    window.location.href = '/api/auth/login/microsoft';
+    window.location.href = `${authUrl}/auth/login/microsoft`;
   };
 
   return (

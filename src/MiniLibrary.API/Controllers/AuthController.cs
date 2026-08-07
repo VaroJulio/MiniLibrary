@@ -122,15 +122,10 @@ public class AuthController : ControllerBase
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
         _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
 
-        return Ok(new AuthTokenResponse(
-            AccessToken: accessToken,
-            RefreshToken: refreshToken,
-            ExpiresIn: 3600,
-            User: new AuthUserResponse(
-                Id: user.Id,
-                Email: user.Email,
-                FullName: user.FullName,
-                Role: user.Role.ToString())));
+        // Redirect to frontend with tokens in URL (SPA OAuth flow)
+        var frontendUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+        var callbackUrl = $"{frontendUrl}/auth/callback?token={Uri.EscapeDataString(accessToken)}&refreshToken={Uri.EscapeDataString(refreshToken)}";
+        return Redirect(callbackUrl);
     }
 
     /// <summary>
