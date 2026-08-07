@@ -35,6 +35,7 @@ public static class DependencyInjection
         services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
         services.AddScoped<IEmbeddingService, OpenAiEmbeddingService>();
         services.AddScoped<IRecommendationService, OpenAiRecommendationService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
