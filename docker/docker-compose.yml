@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -30,7 +28,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniLibraryDb;User Id=sa;Password=${SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=true;
-      - Jwt__Secret=${JWT_SECRET:-MiniLibrary-Development-Secret-Key-2024-Long-Enough}
+      - Jwt__Secret=${JWT_SECRET:-MiniLibrary-Development-Secret-Key-2024-Long-Enough-For-HmacSha256!}
       - Jwt__Issuer=MiniLibrary
       - Jwt__Audience=MiniLibrary
       - Jwt__ExpirationMinutes=60
@@ -44,8 +42,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
+      retries: 10
+      start_period: 45s
     networks:
       - minilibrary-net
     restart: unless-stopped
