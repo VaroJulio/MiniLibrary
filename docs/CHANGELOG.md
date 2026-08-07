@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Gamification: badge evaluation triggered on book return (10 badge types with thresholds) [MINI-41]
+- MonthlyBadgeJob: awards LectorDelMes and TopReviewer on 1st of each month [MINI-41]
+- Gamification endpoints: GET /api/gamification/badges, /badges/{userId}, /leaderboard [MINI-41]
+- Badge progress tracking: earned badges + pending with % progress [MINI-41]
+- Leaderboard: top 10 members by badge count (1h cache) [MINI-41]
+- FsCheck property tests for badge criteria evaluation (5 tests) [MINI-41]
 - Wishlist endpoints: POST /api/wishlist, DELETE /api/wishlist/{bookId}, GET /api/wishlist (max 20 entries) [MINI-40]
 - Notification endpoints: GET /api/notifications (max 50), PUT /api/notifications/{id}/read [MINI-40]
 - NotificationService implementation (in-app + email placeholder) [MINI-40]

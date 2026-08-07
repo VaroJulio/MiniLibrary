@@ -352,8 +352,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 14: Wishlist Size Limit** — Generate random wishlist operations and verify total entries never exceed 20, additions at limit rejected with 409
     - **Validates: Requirements 18.8**
 
-- [ ] 16. Implement Gamification System
-  - [ ] 16.1 Implement Badge evaluation logic
+- [x] 16. Implement Gamification System
+  - [x] 16.1 Implement Badge evaluation logic
     - Create `EvaluateBadgesCommand`/Handler triggered asynchronously after book return or review creation
     - Implement badge criteria evaluation for all 12 badge types
     - Award badge exactly once per member per badge type
@@ -361,7 +361,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement `MonthlyBadgeJob` for "Lector del Mes" (first of each month)
     - _Requirements: 20.1, 20.2, 20.4, 20.8_
 
-  - [ ] 16.2 Implement Gamification queries and controller
+  - [x] 16.2 Implement Gamification queries and controller
     - Create `GetUserBadgesQuery`/Handler: earned badges with dates + pending badges with progress (% or count)
     - Create `GetGamificationLeaderboardQuery`/Handler: top 10 members by badge count, cached 1 hour
     - Implement viewing another member's public badges
@@ -371,7 +371,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - GET `/api/gamification/leaderboard` — Top 10 badge holders
     - _Requirements: 20.3, 20.5, 20.7_
 
-  - [ ] 16.3 Write property tests for badge criteria evaluation
+  - [x] 16.3 Write property tests for badge criteria evaluation
     - **Property 16: Badge Criteria Evaluation** — Generate random member activity histories meeting badge criteria and verify badge is awarded exactly once
     - **Validates: Requirements 20.1, 20.2**
 
