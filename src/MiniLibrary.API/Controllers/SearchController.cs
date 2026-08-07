@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniLibrary.API.Configuration;
 using MiniLibrary.Application.Books.DTOs;
 using MiniLibrary.Application.Books.Queries.SearchBooks;
+using MiniLibrary.Application.Books.Queries.SemanticSearch;
 using MiniLibrary.Domain.Enumerations;
 
 namespace MiniLibrary.API.Controllers;
@@ -105,12 +106,46 @@ public class SearchController : ControllerBase
     }
 
     /// <summary>
-    /// Performs semantic search using natural language.
+    /// Performs semantic search using natural language (Req 4.1-4.8).
+    /// Uses OpenAI embeddings and cosine similarity with graceful fallback to text search.
     /// </summary>
+    /// <param name="q">Natural language search query (required, non-empty). Silently truncated to 500 chars.</param>
+    /// <param name="maxResults">Maximum number of results (default: 20).</param>
+    /// <param name="threshold">Minimum relevance score 0.0-1.0 (default: 0.3).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Semantic search results with relevance scores and fallback indicator.</returns>
+    /// <response code="200">Search results returned successfully.</response>
+    /// <response code="400">Query is empty or whitespace.</response>
+    /// <response code="401">User is not authenticated.</response>
     [HttpGet("semantic")]
-    public IActionResult SemanticSearch()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SemanticSearch(
+        [FromQuery] string? q = null,
+        [FromQuery] int maxResults = 20,
+        [FromQuery] float threshold = 0.3f,
+        CancellationToken ct = default)
     {
-        // Implementation in Task 9.2
-        return Ok();
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return BadRequest(new { error = "Search query must not be empty or whitespace." });
+        }
+
+        var query = new SemanticSearchQuery
+        {
+            Query = q,
+            MaxResults = maxResults,
+            Threshold = threshold
+        };
+
+        var result = await _mediator.Send(query, ct);
+
+        return Ok(new
+        {
+            data = result.Results,
+            usedFallback = result.UsedFallback,
+            totalResults = result.Results.Count
+        });
     }
 }
