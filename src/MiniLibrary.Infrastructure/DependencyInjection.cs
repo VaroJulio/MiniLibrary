@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniLibrary.Application.Interfaces;
 using MiniLibrary.Domain.Interfaces;
+using MiniLibrary.Infrastructure.Configuration;
 using MiniLibrary.Infrastructure.Data;
 using MiniLibrary.Infrastructure.Repositories;
 using MiniLibrary.Infrastructure.Services;
@@ -13,10 +14,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
-                sqlOptions => sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+        // Domain event dispatcher (must be registered before DbContext so it can be injected)
+        services.AddScoped<DomainEventDispatcher>();
+
+        services.AddDbContext<AppDbContext>((sp, options) =>
+            options
+                .UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+                .AddInterceptors(sp.GetRequiredService<DomainEventDispatcher>()));
 
         // Caching
         services.AddMemoryCache();
@@ -24,6 +30,10 @@ public static class DependencyInjection
 
         // JWT Token Service
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+        // OpenAI Embedding Service
+        services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
+        services.AddScoped<IEmbeddingService, OpenAiEmbeddingService>();
 
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
@@ -33,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IBookEmbeddingRepository, BookEmbeddingRepository>();
 
         return services;
     }

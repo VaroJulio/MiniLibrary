@@ -6,6 +6,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Semantic search endpoint: GET /api/search/semantic with natural language queries [MINI-48]
+- OpenAI Embedding Service (text-embedding-3-small, 3-second timeout, graceful fallback) [MINI-48]
+- Cosine similarity search against stored BookEmbeddings [MINI-48]
+- SemanticSearchQuery/Handler/Validator with relevance >= 0.3, max 20 results, descending order [MINI-48]
+- usedFallback boolean in semantic search response when AI is unavailable [MINI-48]
+- Silent query truncation at 500 characters [MINI-48]
+- Domain event handlers: embedding generation on BookCreatedEvent and BookUpdatedEvent [MINI-48]
+- DomainEventDispatcher: EF Core SaveChanges interceptor for MediatR event publishing [MINI-48]
+- IBookEmbeddingRepository for embedding persistence [MINI-48]
+- FsCheck property tests for semantic search invariants (scores, ordering, max results) [MINI-48]
 - SearchController: GET /api/search/books with text query, filters, and pagination [MINI-47]
 - Query validation (max 200 chars), pagination validation (page >= 1, pageSize 1-100) [MINI-47]
 - Category, status, yearFrom, yearTo filter support on search endpoint [MINI-47]
