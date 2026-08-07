@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Standard PagedResponse<T> wrapper with PaginationMetadata for all list endpoints [MINI-55]
+- PagedResultExtensions.ToPagedOk helper for controllers [MINI-55]
+- FsCheck property tests for pagination metadata consistency (5 tests) [MINI-55]
+- FsCheck property tests for JSON serialization round-trip (2 tests) [MINI-55]
 - Gamification: badge evaluation triggered on book return (10 badge types with thresholds) [MINI-41]
 - MonthlyBadgeJob: awards LectorDelMes and TopReviewer on 1st of each month [MINI-41]
 - Gamification endpoints: GET /api/gamification/badges, /badges/{userId}, /leaderboard [MINI-41]
