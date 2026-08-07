@@ -291,8 +291,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 12: Rating Average Correctness** — Generate random sets of N ratings and verify AverageRating = round(sum/N, 1) and TotalRatings = N
     - **Validates: Requirements 16.4, 16.1, 16.8**
 
-- [ ] 14. Implement Rankings
-  - [ ] 14.1 Implement Book Rankings query
+- [x] 14. Implement Rankings
+  - [x] 14.1 Implement Book Rankings query
     - Create `GetBookRankingsQuery`/Handler
     - Filter: only books with >= 3 ratings; support category, year range, availability filters
     - Support sort by: average rating (default desc), number of ratings, total loans, publication date
@@ -301,7 +301,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement category ranking: categories with best-rated book and category average
     - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6, 17.7_
 
-  - [ ] 14.2 Implement Reader Rankings query
+  - [x] 14.2 Implement Reader Rankings query
     - Create `GetReaderRankingsQuery`/Handler
     - Order by: returned loans count in period (descending)
     - Support period filters: 30 days, 90 days, 12 months, all-time
@@ -314,7 +314,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - GET `/api/rankings/categories` — Category rankings (all authenticated)
     - _Requirements: 19.5, 19.6, 19.7, 19.8, 19.9_
 
-  - [ ] 14.3 Write property tests for ranking invariants
+  - [x] 14.3 Write property tests for ranking invariants
     - **Property 13: Book Ranking Invariants** — Generate random rated books, verify all results have >= 3 ratings and correct ordering
     - **Property 15: Reader Ranking Ordering** — Generate random loan histories, verify readers are ordered by descending return count in period
     - **Validates: Requirements 17.1, 17.3, 19.5**

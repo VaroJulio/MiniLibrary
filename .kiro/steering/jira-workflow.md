@@ -4,57 +4,77 @@ inclusion: always
 
 # Jira Workflow - Kanban
 
-## Proyecto
-- **Herramienta**: Jira Cloud (https://ajjbdeveloper.atlassian.net)
-- **Metodología**: Kanban (no sprints)
+## Project
+- **Tool**: Jira Cloud (https://ajjbdeveloper.atlassian.net)
+- **Methodology**: Kanban (no sprints)
 - **Board**: MiniLibrary Kanban Board
 
-## Estados del Kanban
+## Kanban States
 
-| Estado | Descripción |
-|--------|-------------|
-| Backlog | Historia/tarea identificada, pendiente de priorizar |
-| To Do | Priorizada y lista para ser trabajada |
-| In Progress | Actualmente en desarrollo |
-| In Review | PR creado, en revisión de código |
-| Done | Completada, PR mergeado y desplegado |
+| State | Description |
+|-------|-------------|
+| Backlog | Story/task identified, pending prioritization |
+| To Do | Prioritized and ready to be worked on |
+| In Progress | Currently in development |
+| In Review | PR created, in code review |
+| Done | Completed, PR merged and deployed |
 
-## Tipos de Issues
+## Issue Types and Hierarchy
 
-| Tipo | Uso | Prefijo de branch |
-|------|-----|-------------------|
-| Epic | Funcionalidad grande (requisito completo) | N/A |
-| Story | Historia de usuario implementable | `feature/` |
-| Task | Trabajo técnico no funcional | `chore/` |
-| Bug | Defecto encontrado | `bugfix/` |
-| Sub-task | División de una Story/Task | Usa el del padre |
+| Type | Use | Branch prefix |
+|------|-----|---------------|
+| Epic | Large feature (groups related Stories/Tasks) | N/A |
+| Story | User-facing feature with direct user value | `feature/` |
+| Task | Technical work without direct user value | `chore/` |
+| Bug | Defect found in existing functionality | `bugfix/` |
+| Sub-task | Breakdown of a Story/Task | Uses parent's prefix |
 
-## Convenciones de Issues en Jira
+### Hierarchy rules
+- **Epic** → groups multiple Stories and/or Tasks under a feature area
+- **Story** → delivers user value, linked to its parent Epic
+- **Task** → technical enabler (infra, config, refactor), linked to its parent Epic
+- Do NOT create intermediate Stories to group Tasks — Tasks link directly to Epics
+- Do NOT convert Tasks to Stories if they don't deliver user value
+
+## Issue Conventions
 
 ### Naming
-- **Epic**: Nombre del requisito (ej: "Gestión del Catálogo de Libros")
-- **Story**: Historia de usuario completa (ej: "Como Member, quiero buscar libros por título")
-- **Task**: Acción técnica clara (ej: "Configurar EF Core migrations para Books")
+- **Epic**: Feature area name (e.g., "Book Catalog Management (CRUD)")
+- **Story**: User story format (e.g., "As a Member, I want to search books by title")
+- **Task**: Clear technical action (e.g., "Configure EF Core migrations for Books")
 
-### Campos requeridos
-- **Summary**: Título conciso
-- **Description**: Contexto, criterios de aceptación, notas técnicas
+### Required fields
+- **Summary**: Concise title
+- **Description**: Context, acceptance criteria, technical notes
 - **Labels**: `backend`, `frontend`, `infrastructure`, `documentation`
 - **Priority**: Highest, High, Medium, Low, Lowest
 
-### Vinculación código ↔ Jira
-- Incluir el ID del issue en el branch name: `feature/MINI-42-search-books`
-- Incluir el ID en commits: `feat(books): add search endpoint [MINI-42]`
-- Referenciar en PR description: `Closes MINI-42`
+### Code ↔ Jira linking
+- Include issue ID in branch name: `feature/MINI-42-search-books`
+- Include issue ID in commits: `feat(books): add search endpoint [MINI-42]`
+- Reference in PR description: `Closes MINI-42`
 
-## Flujo de trabajo
+## Workflow
 
-1. Crear/tomar issue del Backlog → mover a **To Do**
-2. Al iniciar desarrollo → mover a **In Progress**, crear branch
-3. Al crear PR → mover a **In Review**
-4. Al mergear PR → mover a **Done**
+1. Find/take issue from Backlog → move to **To Do**
+2. When starting development → move to **In Progress**, create branch
+3. When PR is created → move to **In Review**
+4. When PR is merged → move to **Done**
 
-## Reglas Kanban
-- WIP limit In Progress: 3 issues máximo por persona
-- Priorizar terminar lo que está en progreso antes de tomar nuevo trabajo
-- Revisar el board al inicio de cada sesión de trabajo
+## Kanban Rules
+- WIP limit In Progress: 3 issues max per person
+- Prioritize finishing in-progress work before taking new work
+- Review the board at the start of each work session
+
+## Issue Reuse Rule
+
+**Before creating a new Jira issue**, always search the board for an existing issue in "To Do" that covers the same functionality. If one exists, **reuse it** instead of creating a new one — transition it through the workflow states as development progresses. This prevents duplicates and keeps the board clean.
+
+Steps:
+1. Search: `project = MINI AND summary ~ "keyword" AND status = "Por hacer"`
+2. If found: use that issue key for the branch, commits, and PR
+3. If NOT found: only then create a new issue
+
+## Language Convention
+
+All Jira issue summaries and descriptions must be written in **English**. This ensures consistency across the board and aligns with the codebase language.
