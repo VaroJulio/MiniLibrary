@@ -157,6 +157,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Health check endpoint for Docker and load balancers
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }))
+    .ExcludeFromDescription();
+
 app.Run();
 
 // Make the implicit Program class public so test projects can access it
