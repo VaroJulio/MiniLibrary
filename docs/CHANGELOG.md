@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Book Catalog UI: BookList with paginated grid, search, filters; BookDetail with ratings/reviews/actions [MINI-43]
+- BookForm dialog for create/update (Librarian/Admin) with client-side field validation [MINI-43]
+- WishlistButton and CheckOutButton components with optimistic updates [MINI-43]
+- Loan History UI: paginated table with status indicators (Active, Overdue, Returned) [MINI-43]
+- CheckInButton with optimistic mutation and cross-query invalidation [MINI-43]
+- Text Search page with debounced SearchBar, category/status/year filters, and pagination [MINI-43]
+- Semantic Search (AI Search) tab with natural language input, relevance scores, and fallback indicator [MINI-43]
 - React frontend project: Vite 6 + React 18 + TypeScript + Material UI 6 [MINI-15]
 - Material UI custom theme: primary Indigo #1E3A5F, secondary Amber #F59E0B [MINI-15]
 - Light/dark mode toggle persisting to localStorage, respects prefers-color-scheme [MINI-15]
