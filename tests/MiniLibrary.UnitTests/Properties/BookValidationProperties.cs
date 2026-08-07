@@ -1,12 +1,19 @@
 using FsCheck;
 using FsCheck.Xunit;
+using FluentValidation.TestHelper;
+using MiniLibrary.Application.Books.Commands.CreateBook;
+using MiniLibrary.Application.Books.Commands.DeleteBook;
+using MiniLibrary.Application.Common.Exceptions;
+using MiniLibrary.Domain.Entities;
+using MiniLibrary.Domain.Interfaces;
 using MiniLibrary.Domain.ValueObjects;
+using Moq;
 
 namespace MiniLibrary.UnitTests.Properties;
 
 /// <summary>
 /// Property-based tests for domain value objects and entities.
-/// **Validates: Requirements 1.5, 11.4, 12.1, 12.3**
+/// **Validates: Requirements 1.4, 1.5, 11.4, 12.1, 12.3**
 /// </summary>
 public class BookValidationProperties
 {
@@ -19,6 +26,7 @@ public class BookValidationProperties
     /// Isbn.Create() rejects strings that are not exactly 13 digits (after stripping hyphens/spaces).
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property Isbn_RejectsNon13DigitStrings()
     {
         return Prop.ForAll(
@@ -43,6 +51,7 @@ public class BookValidationProperties
     /// Isbn.Create() rejects 13-digit strings with invalid checksums.
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property Isbn_RejectsInvalidChecksums()
     {
         return Prop.ForAll(
@@ -67,6 +76,7 @@ public class BookValidationProperties
     /// Valid 13-digit ISBNs with correct checksum are accepted by Isbn.Create().
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property Isbn_AcceptsValidIsbn13WithCorrectChecksum()
     {
         return Prop.ForAll(
@@ -87,6 +97,7 @@ public class BookValidationProperties
     /// For any random 13-digit string, Isbn.Create() accepts it iff its checksum is valid.
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property Isbn_AcceptsOnlyValidChecksums()
     {
         return Prop.ForAll(
@@ -108,6 +119,284 @@ public class BookValidationProperties
             });
     }
 
+    // ── Property 1: CreateBookCommandValidator Rejects Invalid Data ─────────────
+    // Generate random invalid CreateBookCommand instances and verify all invalid
+    // fields are rejected by FluentValidation.
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with titles exceeding 255 characters.
+    /// </summary>
+    [Property(Arbitrary = new[] { typeof(BookValidationArbitraries) }, MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsTitleExceedingMaxLength(PositiveInt extraChars)
+    {
+        var title = new string('A', 256 + (extraChars.Get % 500));
+        var command = ValidCommandWith(title: title);
+        var validator = new CreateBookCommandValidator();
+
+        var result = validator.TestValidate(command);
+
+        return (!result.IsValid && result.Errors.Any(e => e.PropertyName == "Title")).ToProperty();
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with empty titles.
+    /// </summary>
+    [Property(MaxTest = 50)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsEmptyTitle()
+    {
+        return Prop.ForAll(
+            Arb.From(Gen.Elements("", " ", "   ", "\t", "\n")),
+            emptyTitle =>
+            {
+                var command = ValidCommandWith(title: emptyTitle);
+                var validator = new CreateBookCommandValidator();
+                var result = validator.TestValidate(command);
+                return !result.IsValid && result.Errors.Any(e => e.PropertyName == "Title");
+            });
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with authors exceeding 200 characters.
+    /// </summary>
+    [Property(Arbitrary = new[] { typeof(BookValidationArbitraries) }, MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsAuthorExceedingMaxLength(PositiveInt extraChars)
+    {
+        var author = new string('B', 201 + (extraChars.Get % 500));
+        var command = ValidCommandWith(author: author);
+        var validator = new CreateBookCommandValidator();
+
+        var result = validator.TestValidate(command);
+
+        return (!result.IsValid && result.Errors.Any(e => e.PropertyName == "Author")).ToProperty();
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with empty authors.
+    /// </summary>
+    [Property(MaxTest = 50)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsEmptyAuthor()
+    {
+        return Prop.ForAll(
+            Arb.From(Gen.Elements("", " ", "   ")),
+            emptyAuthor =>
+            {
+                var command = ValidCommandWith(author: emptyAuthor);
+                var validator = new CreateBookCommandValidator();
+                var result = validator.TestValidate(command);
+                return !result.IsValid && result.Errors.Any(e => e.PropertyName == "Author");
+            });
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with invalid ISBNs.
+    /// </summary>
+    [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsInvalidIsbn()
+    {
+        return Prop.ForAll(
+            Arb.From(GenInvalidIsbnForValidator()),
+            invalidIsbn =>
+            {
+                var command = ValidCommandWith(isbn: invalidIsbn);
+                var validator = new CreateBookCommandValidator();
+                var result = validator.TestValidate(command);
+                return !result.IsValid && result.Errors.Any(e => e.PropertyName == "Isbn");
+            });
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with published years out of range [1450, current year].
+    /// </summary>
+    [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsOutOfRangePublishedYear()
+    {
+        return Prop.ForAll(
+            Arb.From(GenOutOfRangeYear()),
+            invalidYear =>
+            {
+                var command = ValidCommandWith(publishedYear: invalidYear);
+                var validator = new CreateBookCommandValidator();
+                var result = validator.TestValidate(command);
+                return !result.IsValid && result.Errors.Any(e => e.PropertyName == "PublishedYear");
+            });
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with descriptions exceeding 2000 characters.
+    /// </summary>
+    [Property(Arbitrary = new[] { typeof(BookValidationArbitraries) }, MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsDescriptionExceedingMaxLength(PositiveInt extraChars)
+    {
+        var description = new string('D', 2001 + (extraChars.Get % 1000));
+        var command = ValidCommandWith(description: description);
+        var validator = new CreateBookCommandValidator();
+
+        var result = validator.TestValidate(command);
+
+        return (!result.IsValid && result.Errors.Any(e => e.PropertyName == "Description")).ToProperty();
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator rejects commands with category exceeding 100 characters.
+    /// </summary>
+    [Property(Arbitrary = new[] { typeof(BookValidationArbitraries) }, MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_RejectsCategoryExceedingMaxLength(PositiveInt extraChars)
+    {
+        var category = new string('C', 101 + (extraChars.Get % 200));
+        var command = ValidCommandWith(category: category);
+        var validator = new CreateBookCommandValidator();
+
+        var result = validator.TestValidate(command);
+
+        return (!result.IsValid && result.Errors.Any(e => e.PropertyName == "Category")).ToProperty();
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.5, 12.1, 12.3**
+    /// CreateBookCommandValidator accepts commands with all valid fields.
+    /// </summary>
+    [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Validator_AcceptsValidCommands()
+    {
+        return Prop.ForAll(
+            Arb.From(GenValidCreateBookCommand()),
+            command =>
+            {
+                var validator = new CreateBookCommandValidator();
+                var result = validator.TestValidate(command);
+                return result.IsValid;
+            });
+    }
+
+    // ── Property 2: Book Deletion Invariant ──────────────────────────────────────
+    // Generate random books with/without active loans and verify deletion is only
+    // allowed when no active loans exist.
+
+    /// <summary>
+    /// **Validates: Requirements 1.4**
+    /// DeleteBookCommandHandler throws ConflictException when book has active loans.
+    /// </summary>
+    [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Delete_ThrowsConflict_WhenActiveLoansExist()
+    {
+        return Prop.ForAll(
+            Arb.From(Gen.Fresh(() => Guid.NewGuid())),
+            bookId =>
+            {
+                // Arrange: book exists + has an active loan
+                var book = Book.Create("Test Book", "Author", "9780306406157", 2020, "Desc", "Fiction");
+                var activeLoan = BookLoan.Create(bookId, Guid.NewGuid(), DateTime.UtcNow);
+
+                var mockBookRepo = new Mock<IBookRepository>();
+                mockBookRepo.Setup(r => r.GetByIdAsync(bookId, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(book);
+
+                var mockLoanRepo = new Mock<ILoanRepository>();
+                mockLoanRepo.Setup(r => r.GetActiveLoanByBookAsync(bookId, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(activeLoan);
+
+                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object);
+
+                // Act & Assert
+                try
+                {
+                    handler.Handle(new DeleteBookCommand(bookId), CancellationToken.None).GetAwaiter().GetResult();
+                    return false; // Should have thrown
+                }
+                catch (ConflictException)
+                {
+                    return true; // Expected: cannot delete with active loans
+                }
+            });
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.4**
+    /// DeleteBookCommandHandler succeeds (soft-deletes) when book has no active loans.
+    /// </summary>
+    [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Delete_Succeeds_WhenNoActiveLoansExist()
+    {
+        return Prop.ForAll(
+            Arb.From(Gen.Fresh(() => Guid.NewGuid())),
+            bookId =>
+            {
+                // Arrange: book exists + no active loan
+                var book = Book.Create("Test Book", "Author", "9780306406157", 2020, "Desc", "Fiction");
+
+                var mockBookRepo = new Mock<IBookRepository>();
+                mockBookRepo.Setup(r => r.GetByIdAsync(bookId, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(book);
+                mockBookRepo.Setup(r => r.DeleteAsync(book, It.IsAny<CancellationToken>()))
+                    .Returns(Task.CompletedTask);
+
+                var mockLoanRepo = new Mock<ILoanRepository>();
+                mockLoanRepo.Setup(r => r.GetActiveLoanByBookAsync(bookId, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((BookLoan?)null);
+
+                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object);
+
+                // Act
+                handler.Handle(new DeleteBookCommand(bookId), CancellationToken.None).GetAwaiter().GetResult();
+
+                // Assert: book is now soft-deleted
+                return book.IsDeleted;
+            });
+    }
+
+    /// <summary>
+    /// **Validates: Requirements 1.4**
+    /// DeleteBookCommandHandler throws NotFoundException when book does not exist.
+    /// </summary>
+    [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
+    public Property Delete_ThrowsNotFound_WhenBookDoesNotExist()
+    {
+        return Prop.ForAll(
+            Arb.From(Gen.Fresh(() => Guid.NewGuid())),
+            bookId =>
+            {
+                // Arrange: book does not exist
+                var mockBookRepo = new Mock<IBookRepository>();
+                mockBookRepo.Setup(r => r.GetByIdAsync(bookId, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync((Book?)null);
+
+                var mockLoanRepo = new Mock<ILoanRepository>();
+
+                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object);
+
+                // Act & Assert
+                try
+                {
+                    handler.Handle(new DeleteBookCommand(bookId), CancellationToken.None).GetAwaiter().GetResult();
+                    return false; // Should have thrown
+                }
+                catch (NotFoundException)
+                {
+                    return true; // Expected: book not found
+                }
+            });
+    }
+
     // ── RelevanceScore Properties ────────────────────────────────────────────────
 
     /// <summary>
@@ -115,6 +404,7 @@ public class BookValidationProperties
     /// RelevanceScore.Create() rejects values outside [0.0, 1.0].
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property RelevanceScore_RejectsValuesOutsideRange()
     {
         return Prop.ForAll(
@@ -138,6 +428,7 @@ public class BookValidationProperties
     /// RelevanceScore.Create() accepts values within [0.0, 1.0].
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property RelevanceScore_AcceptsValuesWithinRange()
     {
         return Prop.ForAll(
@@ -156,6 +447,7 @@ public class BookValidationProperties
     /// DateRange.Create() rejects end < start.
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property DateRange_RejectsEndBeforeStart()
     {
         return Prop.ForAll(
@@ -180,6 +472,7 @@ public class BookValidationProperties
     /// DateRange.Create() accepts end >= start.
     /// </summary>
     [Property(MaxTest = 100)]
+    [Trait("Category", "Property")]
     public Property DateRange_AcceptsEndOnOrAfterStart()
     {
         return Prop.ForAll(
@@ -341,5 +634,117 @@ public class BookValidationProperties
             sum += digit * weight;
         }
         return sum % 10 == 0;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // CreateBookCommand Helpers & Generators
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Creates a valid CreateBookCommand with optional field overrides.
+    /// </summary>
+    private static CreateBookCommand ValidCommandWith(
+        string? title = null,
+        string? author = null,
+        string? isbn = null,
+        int? publishedYear = null,
+        string? description = null,
+        string? category = null)
+    {
+        return new CreateBookCommand(
+            Title: title ?? "Valid Title",
+            Author: author ?? "Valid Author",
+            Isbn: isbn ?? "9780306406157",
+            PublishedYear: publishedYear ?? 2020,
+            Description: description ?? "A valid description.",
+            Category: category ?? "Fiction");
+    }
+
+    /// <summary>
+    /// Generates invalid ISBN strings for the CreateBookCommandValidator.
+    /// Includes: non-13-digit strings, wrong checksums, empty strings, strings with letters.
+    /// </summary>
+    private static Gen<string> GenInvalidIsbnForValidator()
+    {
+        var genTooShort = Gen.Choose(1, 12).SelectMany(length =>
+            Gen.ArrayOf(length, Gen.Choose(0, 9))
+               .Select(digits => string.Concat(digits)));
+
+        var genTooLong = Gen.Choose(14, 20).SelectMany(length =>
+            Gen.ArrayOf(length, Gen.Choose(0, 9))
+               .Select(digits => string.Concat(digits)));
+
+        var genWrongChecksum = GenInvalidChecksum13DigitString();
+
+        var genWithLetters = Gen.ArrayOf(13, Gen.OneOf(
+                Gen.Choose(0, 9).Select(d => (char)('0' + d)),
+                Gen.Elements('A', 'B', 'X')))
+            .Where(arr => arr.Any(c => !char.IsDigit(c)))
+            .Select(arr => new string(arr));
+
+        var genEmpty = Gen.Elements("", " ", "abc");
+
+        return Gen.OneOf(genTooShort, genTooLong, genWrongChecksum, genWithLetters, genEmpty);
+    }
+
+    /// <summary>
+    /// Generates published years outside the valid range [1450, current year].
+    /// </summary>
+    private static Gen<int> GenOutOfRangeYear()
+    {
+        var currentYear = DateTime.UtcNow.Year;
+        var genTooLow = Gen.Choose(0, 1449);
+        var genTooHigh = Gen.Choose(currentYear + 1, currentYear + 100);
+        return Gen.OneOf(genTooLow, genTooHigh);
+    }
+
+    /// <summary>
+    /// Generates valid CreateBookCommand instances with all fields within constraints.
+    /// </summary>
+    private static Gen<CreateBookCommand> GenValidCreateBookCommand()
+    {
+        var currentYear = DateTime.UtcNow.Year;
+
+        var genTitle = Gen.Choose(1, 100).SelectMany(len =>
+            Gen.ArrayOf(len, Gen.Elements(
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'a', 'b', 'c', 'd', ' '))
+                .Select(chars => new string(chars).Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        var genAuthor = Gen.Choose(1, 100).SelectMany(len =>
+            Gen.ArrayOf(len, Gen.Elements(
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'a', 'b', 'c', 'd', ' '))
+                .Select(chars => new string(chars).Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        var genYear = Gen.Choose(1450, currentYear);
+
+        var genDescription = Gen.Choose(0, 200).SelectMany(len =>
+            Gen.ArrayOf(len, Gen.Elements('A', 'b', 'c', 'd', 'e', ' ', '.'))
+                .Select(chars => new string(chars)));
+
+        return from title in genTitle
+               from author in genAuthor
+               from isbn in GenValidIsbn13()
+               from year in genYear
+               from description in genDescription
+               select new CreateBookCommand(
+                   Title: title,
+                   Author: author,
+                   Isbn: isbn,
+                   PublishedYear: year,
+                   Description: description,
+                   Category: "Fiction");
+    }
+}
+
+/// <summary>
+/// Arbitrary type registration for FsCheck property tests.
+/// </summary>
+public class BookValidationArbitraries
+{
+    public static Arbitrary<PositiveInt> PositiveInt()
+    {
+        return Arb.Default.PositiveInt();
     }
 }

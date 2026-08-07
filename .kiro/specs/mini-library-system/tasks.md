@@ -99,6 +99,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
 
 - [x] 4. Implement Authentication and Authorization
   - [x] 4.1 Configure OAuth 2.0 authentication (Google + Microsoft)
+- [x] 4. Implement Authentication and Authorization
+  - [x] 4.1 Configure OAuth 2.0 authentication (Google + Microsoft)
     - Configure Google OAuth 2.0 authentication scheme
     - Configure Microsoft OAuth 2.0 authentication scheme
     - Implement JWT token generation with 60-minute expiration
@@ -107,6 +109,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - _Requirements: 6.1, 6.2, 6.4, 6.5_
 
   - [x] 4.2 Implement role-based authorization and user provisioning
+  - [x] 4.2 Implement role-based authorization and user provisioning
     - Implement automatic user creation with Member role on first SSO login
     - Configure role-based authorization policies: Admin, Librarian, Member
     - Implement `[Authorize]` attribute usage on controllers with role requirements
@@ -114,26 +117,23 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - _Requirements: 6.3, 6.6, 6.7, 7.4, 7.5_
 
   - [x] 4.3 Write property tests for role-based access control
+  - [x] 4.3 Write property tests for role-based access control
     - **Property 8: Role-Based Access Control** — Generate random (role, endpoint) pairs and verify correct 403/200 responses
     - **Validates: Requirements 1.9, 6.6, 7.5, 8.5, 16.2, 17.7, 20.9**
-
-- [x] 5. Checkpoint - Foundation layers complete
-  - Ensure all tests pass, ask the user if questions arise.
-
-- [ ] 6. Implement Book Catalog Management (CRUD)
+- [x] 6. Implement Book Catalog Management (CRUD) Catalog Management (CRUD)
   - [x] 6.1 Implement CreateBook command with FluentValidation
     - Create `CreateBookCommand`, `CreateBookCommandHandler`, and `CreateBookCommandValidator`
     - Validate: title (1–255 chars), author (1–200 chars), ISBN (ISBN-13 format, unique), year (1450–current), description (max 2000 chars), category (max 100 chars)
     - Set initial status to Available, return created resource with HTTP 201
     - _Requirements: 1.1, 1.5, 1.6_
 
-  - [ ] 6.2 Implement UpdateBook and DeleteBook commands
+  - [x] 6.2 Implement UpdateBook and DeleteBook commands
     - Create `UpdateBookCommand`/Handler/Validator with same validation rules as create
     - Create `DeleteBookCommand`/Handler that checks for active loans before deletion
     - Return 404 if book not found, 409 if active loans exist on delete, 403 if Member role
     - _Requirements: 1.2, 1.3, 1.4, 1.7, 1.8, 1.9_
 
-  - [ ] 6.3 Implement BooksController with REST endpoints
+  - [x] 6.3 Implement BooksController with REST endpoints
     - POST `/api/books` — Create book (Librarian, Admin)
     - PUT `/api/books/{id}` — Update book (Librarian, Admin)
     - DELETE `/api/books/{id}` — Delete book (Librarian, Admin)
@@ -141,13 +141,13 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Wire AutoMapper for entity ↔ DTO mapping
     - _Requirements: 1.1, 1.2, 1.3, 1.7, 1.9_
 
-  - [ ] 6.4 Write property tests for book validation and deletion invariant
+  - [x] 6.4 Write property tests for book validation and deletion invariant
     - **Property 1: Book Validation Rejects Invalid Data** — Generate random invalid CreateBookCommand instances and verify all invalid fields are rejected
     - **Property 2: Book Deletion Invariant** — Generate random books with/without active loans and verify deletion is only allowed when no active loans exist
     - **Validates: Requirements 1.4, 1.5, 12.1, 12.3**
 
-- [ ] 7. Implement Loan System (Check-in/Check-out)
-  - [ ] 7.1 Implement CheckOutBook command
+- [x] 7. Implement Loan System (Check-in/Check-out)
+  - [x] 7.1 Implement CheckOutBook command
     - Create `CheckOutBookCommand`, Handler, and Validator
     - Verify preconditions: book status is Available AND user has < 5 active loans
     - Create BookLoan with BorrowedAt = now, DueDate = now + 14 days
@@ -156,14 +156,14 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - If book is in user's wishlist, auto-remove it
     - _Requirements: 2.1, 2.3, 2.6, 11.5, 18.9_
 
-  - [ ] 7.2 Implement CheckInBook command
+  - [x] 7.2 Implement CheckInBook command
     - Create `CheckInBookCommand`, Handler, and Validator
     - Verify: Member can only check-in their own loans; Librarian can check-in any loan
     - Set ReturnedAt = now, change book status to Available
     - Dispatch `BookReturnedEvent` for badge evaluation and wishlist alerts
     - _Requirements: 2.2, 2.4, 2.5_
 
-  - [ ] 7.3 Implement loan history query and LoansController
+  - [x] 7.3 Implement loan history query and LoansController
     - Create `GetLoanHistoryQuery`/Handler with pagination (20 per page, ordered by date desc)
     - Create `GetOverdueLoansQuery`/Handler for Librarian/Admin (paginated)
     - Implement `LoansController` with endpoints:
@@ -173,13 +173,13 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - GET `/api/loans/overdue` — Overdue loans list (Librarian, Admin)
     - _Requirements: 2.7, 2.8, 19.4_
 
-  - [ ] 7.4 Write property tests for loan preconditions and correctness
+  - [x] 7.4 Write property tests for loan preconditions and correctness
     - **Property 3: Check-Out Preconditions** — Generate random (bookStatus, activeLoanCount) pairs and verify check-out succeeds iff Available AND count < 5
     - **Property 4: Loan Creation Correctness** — For any successful check-out, verify BorrowedAt = now, DueDate = BorrowedAt + 14 days, status = CheckedOut
     - **Validates: Requirements 2.1, 2.3, 2.6**
 
 - [ ] 8. Implement Text Search
-  - [ ] 8.1 Implement SearchBooks query with filters and pagination
+  - [x] 8.1 Implement SearchBooks query with filters and pagination
     - Create `SearchBooksQuery`/Handler with text search across title, author, ISBN, category
     - Implement filter parameters: category, status (Available/CheckedOut), year range (min/max between 1000–current year)
     - Implement pagination validation: page >= 1, pageSize 1–100, default 20

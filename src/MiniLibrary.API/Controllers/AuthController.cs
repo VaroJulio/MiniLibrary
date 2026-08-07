@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniLibrary.API.Configuration;
 using MiniLibrary.API.Extensions;
 using MiniLibrary.Application.Interfaces;
 using MiniLibrary.Domain.Enumerations;
@@ -10,7 +11,7 @@ using DomainUser = MiniLibrary.Domain.Entities.User;
 namespace MiniLibrary.API.Controllers;
 
 /// <summary>
-/// Handles OAuth authentication flows, JWT token generation, and user provisioning.
+/// Handles OAuth authentication flows, JWT token generation, and token refresh.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -34,6 +35,9 @@ public class AuthController : ControllerBase
     /// Initiates OAuth login flow with the specified provider.
     /// </summary>
     /// <param name="provider">OAuth provider: "Google" or "Microsoft"</param>
+    /// <returns>Challenge redirect to the external OAuth provider.</returns>
+    /// <response code="302">Redirects to the OAuth provider's login page.</response>
+    /// <response code="400">Unsupported provider specified.</response>
     [HttpGet("login/{provider}")]
     [AllowAnonymous]
     public IActionResult Login(string provider)
@@ -53,10 +57,14 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// OAuth callback handler. Provisions user on first login and returns JWT tokens.
+    /// OAuth callback handler. Provisions user on first login and returns JWT + refresh tokens.
     /// </summary>
     /// <param name="provider">OAuth provider name</param>
     /// <param name="ct">Cancellation token</param>
+    /// <returns>JWT access token, refresh token, and user profile.</returns>
+    /// <response code="200">Authentication successful. Returns tokens and user info.</response>
+    /// <response code="400">Unable to determine user identity from provider.</response>
+    /// <response code="401">Authentication with external provider failed.</response>
     [HttpGet("callback/{provider}")]
     [AllowAnonymous]
     public async Task<IActionResult> Callback(string provider, CancellationToken ct)
@@ -84,7 +92,8 @@ public class AuthController : ControllerBase
 
         if (user is null)
         {
-            _logger.LogInformation("First-time login for user {Email} via {Provider}. Creating account with Member role.",
+            _logger.LogInformation(
+                "First-time login for user {Email} via {Provider}. Creating account with Member role.",
                 email, provider);
 
             user = DomainUser.Create(
@@ -97,7 +106,7 @@ public class AuthController : ControllerBase
             await _userRepository.AddAsync(user, ct);
         }
 
-        // Generate JWT access token (60-minute expiration) and refresh token (7-day expiration)
+        // Generate JWT access token (60-minute expiration) and refresh token (7-day expiration) (Req 6.4)
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
         _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
@@ -114,9 +123,14 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Refreshes an expired JWT token using a valid refresh token.
-    /// Issues a new access token (60-min) and a new refresh token (7-day) without re-authentication.
+    /// Refreshes an expired JWT token using a valid refresh token (Req 6.5).
     /// </summary>
+    /// <param name="request">The refresh token request body.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>New JWT access token and refresh token.</returns>
+    /// <response code="200">Token refreshed successfully.</response>
+    /// <response code="400">Refresh token not provided.</response>
+    /// <response code="401">Invalid or expired refresh token.</response>
     [HttpPost("refresh")]
     [AllowAnonymous]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request, CancellationToken ct)
@@ -161,8 +175,12 @@ public class AuthController : ControllerBase
     /// <summary>
     /// Gets the current authenticated user's profile.
     /// </summary>
+    /// <returns>The authenticated user's profile information.</returns>
+    /// <response code="200">Returns the user profile.</response>
+    /// <response code="401">User is not authenticated.</response>
+    /// <response code="404">User not found in the database.</response>
     [HttpGet("me")]
-    [Authorize]
+    [Authorize(Policy = AuthorizationConfig.Policies.Authenticated)]
     public async Task<IActionResult> GetCurrentUser(CancellationToken ct)
     {
         var userId = User.GetUserId();
