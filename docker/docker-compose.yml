@@ -40,6 +40,7 @@ services:
       - Authentication__Microsoft__ClientSecret=${MICROSOFT_CLIENT_SECRET:-}
       - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
       - App__FrontendUrl=http://localhost:3000
+      - App__PublicUrl=http://localhost:5000
     ports:
       - "5000:5000"
     depends_on:
