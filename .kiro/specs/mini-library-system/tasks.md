@@ -391,15 +391,15 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 11: JSON Serialization Round-Trip** — Generate random response objects, serialize to JSON (camelCase, ISO 8601) and deserialize back, verify equivalence
     - **Validates: Requirements 13.3, 13.1, 13.2, 14.4, 14.1, 14.3**
 
-- [ ] 19. Set up React Frontend project
-  - [ ] 19.1 Initialize React + TypeScript + Vite project
+- [x] 19. Set up React Frontend project
+  - [x] 19.1 Initialize React + TypeScript + Vite project
     - Create `src/MiniLibrary.Web/` with Vite + React 18 + TypeScript template
     - Install dependencies: Material UI, TanStack Query, React Router, Axios
     - Configure path aliases and tsconfig
     - Set up code splitting with React.lazy and Suspense per route
     - _Requirements: 9.2, 15.5_
 
-  - [ ] 19.2 Implement theme, design system, and layout
+  - [x] 19.2 Implement theme, design system, and layout
     - Create Material UI custom theme: primary Indigo #1E3A5F, secondary Amber #F59E0B
     - Configure typography (Inter/Roboto), border-radius (8–12px)
     - Implement light/dark mode toggle persisting to localStorage, respecting prefers-color-scheme
@@ -407,7 +407,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Create shared components: `EmptyState`, `PagedList` (skeleton loading), loading spinners
     - _Requirements: 9.1, 9.3, 9.4, 15.3, 15.4, 15.6, 15.8_
 
-  - [ ] 19.3 Implement API client and authentication context
+  - [x] 19.3 Implement API client and authentication context
     - Create Axios instance with base URL, auth interceptor (JWT bearer token), correlation ID header
     - Implement `AuthContext` with login (OAuth redirect), logout, token refresh logic
     - Implement `OAuthCallback` page handling provider responses

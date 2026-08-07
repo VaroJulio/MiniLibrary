@@ -6,6 +6,18 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- React frontend project: Vite 6 + React 18 + TypeScript + Material UI 6 [MINI-15]
+- Material UI custom theme: primary Indigo #1E3A5F, secondary Amber #F59E0B [MINI-15]
+- Light/dark mode toggle persisting to localStorage, respects prefers-color-scheme [MINI-15]
+- Responsive layout: permanent drawer (desktop), temporary drawer + bottom nav (mobile) [MINI-15]
+- Code splitting with React.lazy per route for all feature modules [MINI-15]
+- Axios API client with JWT auth interceptor, X-Correlation-Id header [MINI-15]
+- Automatic token refresh on 401 with request queue during refresh [MINI-15]
+- AuthContext with OAuth redirect flow, JWT parsing, token expiration handling [MINI-15]
+- OAuthCallback page handling provider responses with error display [MINI-15]
+- Shared components: EmptyState, PagedList (skeleton loading), LoadingSpinner [MINI-15]
+- TanStack Query client configured with stale times and error handling [MINI-15]
+- TypeScript types for domain models and paginated responses [MINI-15]
 - Standard PagedResponse<T> wrapper with PaginationMetadata for all list endpoints [MINI-55]
 - PagedResultExtensions.ToPagedOk helper for controllers [MINI-55]
 - FsCheck property tests for pagination metadata consistency (5 tests) [MINI-55]
