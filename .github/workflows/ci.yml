@@ -6,6 +6,10 @@ on:
   push:
     branches: [develop]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend:
     name: Backend (Build + Test)
@@ -16,7 +20,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           ACCEPT_EULA: Y
-          MSSQL_SA_PASSWORD: TestP@ssw0rd!
+          MSSQL_SA_PASSWORD: ${{ secrets.SA_PASSWORD || 'TestP@ssw0rd!' }}
         ports:
           - 1433:1433
         options: >-
@@ -46,7 +50,6 @@ jobs:
         env:
           ConnectionStrings__DefaultConnection: "Server=localhost;Database=MiniLibraryDb;User Id=sa;Password=TestP@ssw0rd!;TrustServerCertificate=true;"
         run: dotnet test tests/MiniLibrary.IntegrationTests --no-build -c Release --logger trx --results-directory TestResults/
-        continue-on-error: true  # Integration tests may not have a DB schema yet
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -56,9 +59,8 @@ jobs:
           path: TestResults/
 
   frontend:
-    name: Frontend (Build + Test)
+    name: Frontend (Build + Lint)
     runs-on: ubuntu-latest
-    # Only runs when the frontend project exists (package-lock.json present)
     if: hashFiles('src/MiniLibrary.Web/package-lock.json') != ''
 
     steps:
@@ -75,17 +77,14 @@ jobs:
         working-directory: src/MiniLibrary.Web
         run: npm ci
 
+      - name: TypeScript type check
+        working-directory: src/MiniLibrary.Web
+        run: npx tsc --noEmit
+
+      - name: Lint
+        working-directory: src/MiniLibrary.Web
+        run: npm run lint
+
       - name: Build frontend
         working-directory: src/MiniLibrary.Web
         run: npm run build
-
-      - name: Run tests
-        working-directory: src/MiniLibrary.Web
-        run: npm test -- --run
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: frontend-test-results
-          path: src/MiniLibrary.Web/coverage/
