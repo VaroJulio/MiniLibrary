@@ -6,6 +6,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- /health endpoint for Docker and load balancer health checks [MINI-57]
+- BooksController wired to MediatR (Create/Update/Delete/GetById) [MINI-57]
+- LoansController wired to MediatR (CheckOut/CheckIn/History/Overdue) [MINI-57]
+- 16 integration tests: auth flow, RBAC, CRUD, soft-delete, pagination, correlation ID [MINI-57]
+- CustomWebApplicationFactory with InMemory DB and JWT test token generation [MINI-57]
 - CI pipeline: backend build+test (SQL Server service), frontend TypeScript check + ESLint + build [MINI-56]
 - CD pipeline: Docker image build/push to ghcr.io with Buildx cache and version tagging [MINI-56]
 - Nginx API proxy (/api → backend), health endpoint, security headers [MINI-56]

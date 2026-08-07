@@ -483,8 +483,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Ensure seed script is idempotent (can run multiple times safely)
     - _Requirements: 10.5_
 
-- [ ] 24. Final integration wiring and cross-cutting validation
-  - [ ] 24.1 Wire all controllers, DI registration, and integration verification
+- [x] 24. Final integration wiring and cross-cutting validation
+  - [x] 24.1 Wire all controllers, DI registration, and integration verification
     - Register all services, repositories, handlers in DI container (`Program.cs`)
     - Configure AutoMapper profiles for all entity ↔ DTO mappings
     - Verify all endpoints are accessible and return correct response formats
@@ -492,14 +492,14 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Verify ProblemDetails format for all error responses
     - _Requirements: 12.5, 14.1, 14.2, 14.3, 14.5_
 
-  - [ ] 24.2 Write integration tests for end-to-end flows
+  - [x] 24.2 Write integration tests for end-to-end flows
     - Test full authentication flow (OAuth mock → JWT → authorized request)
     - Test concurrent check-out scenario (verify only one succeeds)
     - Test pagination with real datasets
     - Test soft-delete behavior (deleted records excluded from queries)
     - _Requirements: 6.1, 11.3, 11.5, 13.4_
 
-- [ ] 25. Final checkpoint - System complete
+- [x] 25. Final checkpoint - System complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
