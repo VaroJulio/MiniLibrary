@@ -6,6 +6,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Book rankings endpoint: GET /api/rankings/books (min 3 ratings, filters, sort, 15min cache) [MINI-39]
+- Reader rankings endpoint: GET /api/rankings/readers (period filters, own position, 1h cache) [MINI-39]
+- Category rankings endpoint: GET /api/rankings/categories (best-rated book per category) [MINI-39]
+- IRankingsService for ranking aggregation from database [MINI-39]
+- FsCheck property tests for ranking invariants (5 tests) [MINI-39]
 - Ratings system: POST /api/books/{id}/ratings (create/update with loan validation) [MINI-51]
 - Delete own rating: DELETE /api/books/{id}/ratings with average recalculation [MINI-51]
 - Book ratings list: GET /api/books/{id}/ratings paginated (20/page) [MINI-51]
