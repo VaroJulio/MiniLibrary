@@ -14,10 +14,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection"),
-                sqlOptions => sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+        // Domain event dispatcher (must be registered before DbContext so it can be injected)
+        services.AddScoped<DomainEventDispatcher>();
+
+        services.AddDbContext<AppDbContext>((sp, options) =>
+            options
+                .UseSqlServer(
+                    configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName))
+                .AddInterceptors(sp.GetRequiredService<DomainEventDispatcher>()));
 
         // Caching
         services.AddMemoryCache();
@@ -38,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IBadgeRepository, BadgeRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IBookEmbeddingRepository, BookEmbeddingRepository>();
 
         return services;
     }
