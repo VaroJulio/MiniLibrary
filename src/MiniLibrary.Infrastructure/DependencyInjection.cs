@@ -41,6 +41,7 @@ public static class DependencyInjection
 
         // Background jobs
         services.AddHostedService<Jobs.LoanExpirationJob>();
+        services.AddHostedService<Jobs.MonthlyBadgeJob>();
 
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
