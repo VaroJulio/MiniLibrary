@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using MiniLibrary.API.Configuration;
 using MiniLibrary.API.Extensions;
 using MiniLibrary.Application.Interfaces;
@@ -19,15 +20,18 @@ public class AuthController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
+        IConfiguration configuration,
         ILogger<AuthController> logger)
     {
         _userRepository = userRepository;
         _jwtTokenService = jwtTokenService;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -217,6 +221,59 @@ public class AuthController : ControllerBase
 
         return NoContent();
     }
+
+    /// <summary>
+    /// [DEV ONLY] Generates a JWT token for testing without OAuth.
+    /// Enabled via Authentication:EnableDevTokens = true.
+    /// </summary>
+    /// <param name="request">Name, email, and role for the dev token.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <response code="200">Returns JWT access and refresh tokens.</response>
+    /// <response code="404">Dev tokens are disabled.</response>
+    [HttpPost("dev-token")]
+    [AllowAnonymous]
+    public async Task<IActionResult> DevToken([FromBody] DevTokenRequest request, CancellationToken ct)
+    {
+        var enabled = _configuration.GetValue<bool>("Authentication:EnableDevTokens");
+        if (!enabled)
+        {
+            return NotFound(new { error = "Dev tokens are disabled. Set Authentication:EnableDevTokens = true." });
+        }
+
+        var role = request.Role ?? "Member";
+        if (role != "Admin" && role != "Librarian" && role != "Member")
+        {
+            return BadRequest(new { error = "Role must be Admin, Librarian, or Member." });
+        }
+
+        var email = request.Email ?? $"dev-{role.ToLower()}@minilibrary.local";
+        var name = request.Name ?? $"Dev {role}";
+
+        // Find or create the dev user
+        var externalId = $"dev-{email}";
+        var user = await _userRepository.GetByExternalIdAsync(externalId, "DevToken", ct);
+
+        if (user is null)
+        {
+            var parsedRole = Enum.Parse<UserRole>(role);
+            user = DomainUser.Create(email, name, externalId, "DevToken", parsedRole);
+            await _userRepository.AddAsync(user, ct);
+        }
+
+        var accessToken = _jwtTokenService.GenerateAccessToken(user);
+        var refreshToken = _jwtTokenService.GenerateRefreshToken();
+        _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
+
+        return Ok(new AuthTokenResponse(
+            AccessToken: accessToken,
+            RefreshToken: refreshToken,
+            ExpiresIn: 3600,
+            User: new AuthUserResponse(
+                Id: user.Id,
+                Email: user.Email,
+                FullName: user.FullName,
+                Role: user.Role.ToString())));
+    }
 }
 
 /// <summary>
@@ -241,3 +298,8 @@ public record AuthUserResponse(
 /// Request model for token refresh.
 /// </summary>
 public record RefreshTokenRequest(string RefreshToken);
+
+/// <summary>
+/// Request model for dev token generation.
+/// </summary>
+public record DevTokenRequest(string? Name = null, string? Email = null, string? Role = "Member");
