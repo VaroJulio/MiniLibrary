@@ -319,8 +319,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 15: Reader Ranking Ordering** — Generate random loan histories, verify readers are ordered by descending return count in period
     - **Validates: Requirements 17.1, 17.3, 19.5**
 
-- [ ] 15. Implement Wishlist and Notifications
-  - [ ] 15.1 Implement Wishlist commands and queries
+- [x] 15. Implement Wishlist and Notifications
+  - [x] 15.1 Implement Wishlist commands and queries
     - Create `AddToWishlistCommand`/Handler: validate max 20 entries, reject duplicates (409)
     - Create `RemoveFromWishlistCommand`/Handler
     - Create `GetWishlistQuery`/Handler: paginated (20/page), include book status and date added
@@ -330,7 +330,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - GET `/api/wishlist` — List wishlist (Member)
     - _Requirements: 18.1, 18.2, 18.6, 18.7, 18.8_
 
-  - [ ] 15.2 Implement Notification system
+  - [x] 15.2 Implement Notification system
     - Create `GetNotificationsQuery`/Handler: list notifications (max 50, ordered by date desc, read + unread)
     - Create `MarkNotificationReadCommand`/Handler
     - Implement `INotificationService`: in-app + email delivery
@@ -340,7 +340,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - PUT `/api/notifications/{id}/read` — Mark as read (Member)
     - _Requirements: 18.3, 18.4, 18.5, 18.10_
 
-  - [ ] 15.3 Implement loan expiration alerts (background job)
+  - [x] 15.3 Implement loan expiration alerts (background job)
     - Implement `LoanExpirationJob` as daily background service
     - Generate notifications for loans expiring in <= 3 days (title, due date, days remaining)
     - Generate daily notifications for overdue loans (title, days overdue)
@@ -348,7 +348,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement notification preferences: allow members to opt in/out of email alerts by type
     - _Requirements: 19.1, 19.2, 19.3, 19.10_
 
-  - [ ] 15.4 Write property tests for wishlist size limit
+  - [x] 15.4 Write property tests for wishlist size limit
     - **Property 14: Wishlist Size Limit** — Generate random wishlist operations and verify total entries never exceed 20, additions at limit rejected with 409
     - **Validates: Requirements 18.8**
 
