@@ -375,18 +375,18 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 16: Badge Criteria Evaluation** — Generate random member activity histories meeting badge criteria and verify badge is awarded exactly once
     - **Validates: Requirements 20.1, 20.2**
 
-- [ ] 17. Checkpoint - All backend features complete
+- [x] 17. Checkpoint - All backend features complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 18. Implement Pagination and Serialization cross-cutting concerns
-  - [ ] 18.1 Implement standard paginated response wrapper and metadata
+- [x] 18. Implement Pagination and Serialization cross-cutting concerns
+  - [x] 18.1 Implement standard paginated response wrapper and metadata
     - Create `PagedResponse<T>` wrapper with `data` and `pagination` properties
     - Implement `PaginationMetadata`: totalCount, pageSize, currentPage, totalPages, hasNext, hasPrevious
     - Apply wrapper to all list endpoints consistently
     - Handle out-of-range page requests: return empty list with correct metadata
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 14.2_
 
-  - [ ] 18.2 Write property tests for pagination metadata consistency and serialization round-trip
+  - [x] 18.2 Write property tests for pagination metadata consistency and serialization round-trip
     - **Property 10: Pagination Metadata Consistency** — Generate random (totalCount, pageSize, currentPage) and verify totalPages = ceil(T/S), hasNext/hasPrevious correctness
     - **Property 11: JSON Serialization Round-Trip** — Generate random response objects, serialize to JSON (camelCase, ISO 8601) and deserialize back, verify equivalence
     - **Validates: Requirements 13.3, 13.1, 13.2, 14.4, 14.1, 14.3**
