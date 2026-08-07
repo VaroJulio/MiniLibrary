@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IRankingsService, RankingsService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IGamificationService, GamificationService>();
 
         // Background jobs
         services.AddHostedService<Jobs.LoanExpirationJob>();
