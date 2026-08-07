@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniLibrary.Application.Interfaces;
 using MiniLibrary.Domain.Interfaces;
+using MiniLibrary.Infrastructure.Configuration;
 using MiniLibrary.Infrastructure.Data;
 using MiniLibrary.Infrastructure.Repositories;
 using MiniLibrary.Infrastructure.Services;
@@ -24,6 +25,10 @@ public static class DependencyInjection
 
         // JWT Token Service
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+        // OpenAI Embedding Service
+        services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
+        services.AddScoped<IEmbeddingService, OpenAiEmbeddingService>();
 
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
