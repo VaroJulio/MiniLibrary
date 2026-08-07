@@ -36,3 +36,4 @@ coverage/
 .kiro/settings/
 !.kiro/steering/
 !.kiro/hooks/
+docker/.env

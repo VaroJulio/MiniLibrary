@@ -72,6 +72,24 @@ if (!string.IsNullOrEmpty(googleClientId))
         options.ClientId = googleClientId;
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
         options.SaveTokens = true;
+        // Force the correct public URL for the OAuth callback (Docker port mapping issue)
+        var publicUrl = builder.Configuration["App:PublicUrl"] ?? "http://localhost:5000";
+        options.Events.OnRedirectToAuthorizationEndpoint = context =>
+        {
+            // Replace the redirect_uri with the correct public URL
+            var uri = context.RedirectUri;
+            // The default redirect_uri may have wrong host/port, fix it
+            var signinPath = "/signin-google";
+            var correctRedirectUri = publicUrl + signinPath;
+            uri = System.Text.RegularExpressions.Regex.Replace(
+                uri,
+                @"redirect_uri=[^&]+",
+                $"redirect_uri={Uri.EscapeDataString(correctRedirectUri)}");
+            // Always show account selector so user can switch accounts
+            uri += "&prompt=select_account";
+            context.Response.Redirect(uri);
+            return Task.CompletedTask;
+        };
     });
 }
 
@@ -82,6 +100,21 @@ if (!string.IsNullOrEmpty(msClientId))
         options.ClientId = msClientId;
         options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"] ?? string.Empty;
         options.SaveTokens = true;
+        // Force correct public URL and always show account selector
+        var publicUrl = builder.Configuration["App:PublicUrl"] ?? "http://localhost:5000";
+        options.Events.OnRedirectToAuthorizationEndpoint = context =>
+        {
+            var uri = context.RedirectUri;
+            var signinPath = "/signin-microsoft";
+            var correctRedirectUri = publicUrl + signinPath;
+            uri = System.Text.RegularExpressions.Regex.Replace(
+                uri,
+                @"redirect_uri=[^&]+",
+                $"redirect_uri={Uri.EscapeDataString(correctRedirectUri)}");
+            uri += "&prompt=select_account";
+            context.Response.Redirect(uri);
+            return Task.CompletedTask;
+        };
     });
 }
 
@@ -155,6 +188,15 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline
+
+// Forward headers from reverse proxy (Docker port mapping, nginx)
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 // Correlation ID must be first so all subsequent middleware/handlers have access
 app.UseMiddleware<CorrelationIdMiddleware>();

@@ -26,7 +26,7 @@ services:
     container_name: minilibrary-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:5000
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniLibraryDb;User Id=sa;Password=${SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=true;
       - Jwt__Secret=${JWT_SECRET:-MiniLibrary-Development-Secret-Key-2024-Long-Enough-For-HmacSha256!}
       - Jwt__Issuer=MiniLibrary
@@ -38,13 +38,16 @@ services:
       - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET:-}
       - Authentication__Microsoft__ClientId=${MICROSOFT_CLIENT_ID:-}
       - Authentication__Microsoft__ClientSecret=${MICROSOFT_CLIENT_SECRET:-}
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - App__FrontendUrl=http://localhost:3000
+      - App__PublicUrl=http://localhost:5000
     ports:
-      - "5000:8080"
+      - "5000:5000"
     depends_on:
       sqlserver:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 10

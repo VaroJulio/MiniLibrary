@@ -6,6 +6,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- `POST /api/auth/dev-token` endpoint for development without OAuth (controlled by `Authentication:EnableDevTokens`) [MINI-58]
+- Auto-apply EF migrations on startup (`Database.Migrate()`, idempotent) [MINI-58]
+- `prompt=select_account` on Google/Microsoft OAuth (always shows account picker) [MINI-58]
+- `App:PublicUrl` and `App:FrontendUrl` configuration for OAuth redirect handling [MINI-58]
+
+### Fixed
+- OAuth redirect_uri mismatch in Docker (API now listens on port 5000 matching exposed port) [MINI-58]
+- OAuth provider case sensitivity (`google` → `Google` normalization) [MINI-58]
+- OAuth conditional registration (skip when ClientId is empty, prevents startup crash) [MINI-58]
+- OAuth callback now redirects to frontend SPA instead of returning JSON [MINI-58]
+- Frontend LoginPage missing `/api` prefix in OAuth redirect URL [MINI-58]
+- Rankings API client: extract array from `{ data: [...] }` wrapper [MINI-58]
+- Gamification API client: handle `{ earnedBadges, pendingBadges }` response structure [MINI-58]
+- Docker Compose API healthcheck port (5000 instead of 8080) [MINI-58]
+
+### Changed
 - /health endpoint for Docker and load balancer health checks [MINI-57]
 - BooksController wired to MediatR (Create/Update/Delete/GetById) [MINI-57]
 - LoansController wired to MediatR (CheckOut/CheckIn/History/Overdue) [MINI-57]
