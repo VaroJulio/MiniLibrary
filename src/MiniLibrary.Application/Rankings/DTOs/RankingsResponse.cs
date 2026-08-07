@@ -34,3 +34,10 @@ public sealed record CategoryRankingItem(
     int TotalBooks,
     string BestBookTitle,
     string BestBookAuthor);
+
+/// <summary>
+/// Response wrapper for reader rankings including the requesting user's position.
+/// </summary>
+public sealed record ReaderRankingsResponse(
+    List<ReaderRankingItem> Rankings,
+    int? MyPosition);
