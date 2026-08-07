@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- SearchController: GET /api/search/books with text query, filters, and pagination [MINI-47]
+- Query validation (max 200 chars), pagination validation (page >= 1, pageSize 1-100) [MINI-47]
+- Category, status, yearFrom, yearTo filter support on search endpoint [MINI-47]
+- FsCheck property tests for search result correctness (filter forwarding, pagination metadata) [MINI-47]
 - CheckOutBook command: preconditions (Available + <5 loans), 14-day due date, optimistic concurrency, wishlist auto-remove [MINI-46]
 - CheckInBook command: role-based returns (Member own, Librarian/Admin any), dispatches BookReturnedEvent [MINI-46]
 - LoansController with checkout, checkin, history, and overdue endpoints [MINI-46]
