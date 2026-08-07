@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MiniLibrary.API.Configuration;
@@ -71,6 +73,9 @@ builder.Services.AddAuthentication(options =>
 
 // Configure role-based authorization policies (Req 7.4)
 builder.Services.AddAuthorizationPolicies();
+
+// Custom authorization result handler for RFC 7807 ProblemDetails responses (Req 6.6)
+builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationResultHandler>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
