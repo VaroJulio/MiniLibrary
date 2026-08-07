@@ -178,7 +178,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 4: Loan Creation Correctness** — For any successful check-out, verify BorrowedAt = now, DueDate = BorrowedAt + 14 days, status = CheckedOut
     - **Validates: Requirements 2.1, 2.3, 2.6**
 
-- [ ] 8. Implement Text Search
+- [x] 8. Implement Text Search
   - [x] 8.1 Implement SearchBooks query with filters and pagination
     - Create `SearchBooksQuery`/Handler with text search across title, author, ISBN, category
     - Implement filter parameters: category, status (Available/CheckedOut), year range (min/max between 1000–current year)
@@ -187,25 +187,25 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Return 400 for invalid filter values or pagination parameters
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-  - [ ] 8.2 Implement SearchController
+  - [x] 8.2 Implement SearchController
     - GET `/api/search/books` — Text search with filters (all authenticated)
     - Validate query length (1–200 chars when provided), return all books paginated when query is empty
     - Require authentication (401 for unauthenticated)
     - _Requirements: 3.1, 3.2, 3.5_
 
-  - [ ] 8.3 Write property tests for search result correctness
+  - [x] 8.3 Write property tests for search result correctness
     - **Property 5: Search Results Subset Correctness** — Generate random catalogs and queries, verify every result matches query in at least one field AND satisfies all applied filters
     - **Validates: Requirements 3.1, 3.3**
 
-- [ ] 9. Implement Semantic Search with AI
-  - [ ] 9.1 Implement OpenAI Embedding Service
+- [x] 9. Implement Semantic Search with AI
+  - [x] 9.1 Implement OpenAI Embedding Service
     - Implement `IEmbeddingService` using OpenAI text-embedding-3-small model
     - Generate embeddings from concatenated title + author + description
     - Store embeddings as binary in `BookEmbedding` table
     - Implement 3-second timeout with graceful fallback to text search
     - _Requirements: 4.2, 4.3, 4.8_
 
-  - [ ] 9.2 Implement Semantic Search query handler
+  - [x] 9.2 Implement Semantic Search query handler
     - Create `SemanticSearchQuery`/Handler
     - Calculate query embedding, compare via cosine similarity against stored embeddings
     - Filter results with relevance score >= 0.3, order by descending score, max 20 results
@@ -215,20 +215,20 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Return relevance score (0.0–1.0) for each result
     - _Requirements: 4.1, 4.3, 4.4, 4.5, 4.6, 4.7_
 
-  - [ ] 9.3 Implement embedding generation on book create/update (domain event handler)
+  - [x] 9.3 Implement embedding generation on book create/update (domain event handler)
     - Handle `BookCreatedEvent` and `BookUpdatedEvent` to generate and store embeddings
     - If embedding generation fails, complete the book operation without embedding and log for retry
     - _Requirements: 4.2, 4.8_
 
-  - [ ] 9.4 Write property tests for semantic search invariants
+  - [x] 9.4 Write property tests for semantic search invariants
     - **Property 6: Semantic Search Result Invariants** — Generate random result sets and verify all scores >= 0.3 and results are ordered by descending score
     - **Validates: Requirements 4.1, 4.7**
 
-- [ ] 10. Checkpoint - Core backend features complete
+- [x] 10. Checkpoint - Core backend features complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Implement AI Recommendations
-  - [ ] 11.1 Implement OpenAI Recommendation Service
+- [x] 11. Implement AI Recommendations
+  - [x] 11.1 Implement OpenAI Recommendation Service
     - Implement `IRecommendationService` using GPT-4o-mini
     - Analyze member's loan history to generate personalized recommendations (1–10 books)
     - Each recommendation includes: title, author, category, justification (max 200 chars)
@@ -236,7 +236,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - For members with < 3 loans: return top 10 most-borrowed books in last 90 days
     - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-  - [ ] 11.2 Implement GetRecommendations query with caching
+  - [x] 11.2 Implement GetRecommendations query with caching
     - Create `GetRecommendationsQuery`/Handler
     - Exclude books already read or currently on loan by the member
     - Cache recommendations per member for 1 hour
@@ -244,7 +244,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement `RecommendationsController`: GET `/api/recommendations` (Member)
     - _Requirements: 5.5, 5.6, 5.7_
 
-  - [ ] 11.3 Write property tests for recommendation exclusion
+  - [x] 11.3 Write property tests for recommendation exclusion
     - **Property 7: Recommendation Exclusion Invariant** — Generate random member histories and recommendation sets, verify no recommended book appears in member's history or active loans
     - **Validates: Requirements 5.5**
 

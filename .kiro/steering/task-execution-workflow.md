@@ -61,9 +61,10 @@ Repeat for each sub-task. Each sub-task = one commit. All commits go to the SAME
 
 2. **Update documentation** (per `documentation-standards.md`)
    - Update `docs/CHANGELOG.md` with the task's changes.
+   - Update `.kiro/specs/*/tasks.md`: mark completed sub-tasks and parent task as `[x]`.
    - If new API endpoints: verify Swagger XML comments are complete.
    - If architecture changed: update diagrams.
-   - Commit: `docs(scope): update changelog and API docs [MINI-XX]`
+   - Commit: `docs(scope): update changelog and task progress [MINI-XX]`
 
 3. **Push final state**
    - `git push origin feature/MINI-XX-short-description`
@@ -131,7 +132,7 @@ Repeat for each sub-task. Each sub-task = one commit. All commits go to the SAME
 4. Implement 8.1 → commit: feat(search): implement SearchBooks query [MINI-48]
 5. Implement 8.2 → commit: feat(search): implement SearchController [MINI-48]
 6. Implement 8.3 → commit: test(search): property tests for search [MINI-48]
-7. docs commit: docs(search): update CHANGELOG [MINI-48]
+7. docs commit: docs(search): update CHANGELOG and task progress [MINI-48]
 8. git push -u origin feature/MINI-48-search-feature
 9. Create PR: "feat(search): implement text search with filters [MINI-48]" → develop
 10. Jira: MINI-48 → In Review + comment
