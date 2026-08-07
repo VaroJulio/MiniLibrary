@@ -33,6 +33,11 @@ services:
       - Jwt__Audience=MiniLibrary
       - Jwt__ExpirationMinutes=60
       - OpenAI__ApiKey=${OPENAI_API_KEY:-}
+      - Authentication__EnableDevTokens=${ENABLE_DEV_TOKENS:-true}
+      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID:-}
+      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET:-}
+      - Authentication__Microsoft__ClientId=${MICROSOFT_CLIENT_ID:-}
+      - Authentication__Microsoft__ClientSecret=${MICROSOFT_CLIENT_SECRET:-}
     ports:
       - "5000:8080"
     depends_on:
