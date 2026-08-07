@@ -437,14 +437,14 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Show fallback indicator when semantic search uses text fallback
     - _Requirements: 3.1, 3.3, 4.1, 4.3, 4.5_
 
-- [ ] 21. Implement Frontend Feature Modules - Advanced Features
-  - [ ] 21.1 Implement Recommendations and Dashboard
+- [x] 21. Implement Frontend Feature Modules - Advanced Features
+  - [x] 21.1 Implement Recommendations and Dashboard
     - Create `RecommendationsList` with `RecommendationCard` (title, author, category, justification)
     - Create `DashboardPage` with `StatsCards` and `LoanCharts` (Librarian/Admin only)
     - Implement charts for loan metrics by period, popular categories, top books
     - _Requirements: 5.1, 8.1, 8.2, 8.3, 8.4_
 
-  - [ ] 21.2 Implement Ratings, Rankings, and Wishlist features
+  - [x] 21.2 Implement Ratings, Rankings, and Wishlist features
     - Create `RatingForm` (star selector + review text), `ReviewList` (paginated), `StarDisplay`
     - Create `BookRankingPage` with filters and sort options
     - Create `ReaderRankingPage` with period filter and current user's position highlight
@@ -452,7 +452,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Create `WishlistButton` for adding books from catalog/detail views
     - _Requirements: 16.1, 16.5, 17.1, 17.4, 18.1, 18.2, 19.5_
 
-  - [ ] 21.3 Implement Gamification, Notifications, and User Management
+  - [x] 21.3 Implement Gamification, Notifications, and User Management
     - Create `BadgesPage` with earned badges and progress toward pending badges
     - Create `LeaderboardPage` showing top 10 members by badges
     - Create `NotificationBell` (header icon with unread count) and `NotificationPanel` (dropdown)

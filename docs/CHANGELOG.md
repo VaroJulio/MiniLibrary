@@ -6,6 +6,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Recommendations page with personalized cards (title, author, category, justification) [MINI-44]
+- Dashboard page with stats cards, users by role, popular categories, top books, loan activity [MINI-44]
+- RatingForm (star selector + review text) and StarDisplay component [MINI-44]
+- BookRankingsPage with sort/category filter and ReaderRankingsPage with period filter [MINI-44]
+- WishlistPage with availability status badges and remove action [MINI-44]
+- GamificationPage: earned badges grid, pending progress bars, leaderboard top 10 [MINI-44]
+- NotificationBell with unread badge count (polls every 60s) [MINI-44]
+- NotificationsPage with read/unread states and mark-as-read on click [MINI-44]
+- UserManagementPage (Admin) with role selector dropdown [MINI-44]
 - Book Catalog UI: BookList with paginated grid, search, filters; BookDetail with ratings/reviews/actions [MINI-43]
 - BookForm dialog for create/update (Librarian/Admin) with client-side field validation [MINI-43]
 - WishlistButton and CheckOutButton components with optimistic updates [MINI-43]
