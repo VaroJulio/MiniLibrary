@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IEmbeddingService, OpenAiEmbeddingService>();
         services.AddScoped<IRecommendationService, OpenAiRecommendationService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<IRankingsService, RankingsService>();
 
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
