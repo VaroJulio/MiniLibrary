@@ -414,8 +414,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Configure TanStack Query client with default stale times and error handling
     - _Requirements: 6.1, 6.2, 6.4, 6.5, 14.5_
 
-- [ ] 20. Implement Frontend Feature Modules - Catalog and Loans
-  - [ ] 20.1 Implement Book Catalog feature module
+- [x] 20. Implement Frontend Feature Modules - Catalog and Loans
+  - [x] 20.1 Implement Book Catalog feature module
     - Create `BookList` with paginated table/grid, search bar, and category/status/year filters
     - Create `BookDetail` page: book info, average rating, recent reviews, check-out/wishlist actions
     - Create `BookForm` for create/update (Librarian/Admin) with field validation and error display
@@ -423,14 +423,14 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement skeleton loaders for book list and detail pages
     - _Requirements: 1.1, 1.2, 9.4, 12.4, 15.2, 15.6, 15.7_
 
-  - [ ] 20.2 Implement Loan feature module
+  - [x] 20.2 Implement Loan feature module
     - Create `CheckOutButton` and `CheckInButton` with optimistic updates
     - Create `LoanHistory` page with paginated table (member's own loans)
     - Show loan status indicators (active, returned, overdue)
     - Implement optimistic check-out/check-in with rollback on API error
     - _Requirements: 2.1, 2.2, 2.7, 15.7_
 
-  - [ ] 20.3 Implement Search and Semantic Search features
+  - [x] 20.3 Implement Search and Semantic Search features
     - Create `SearchBar` component with debounced text input
     - Create `SearchResults` page with filter sidebar (category, status, year range)
     - Create `SemanticSearchPage` with natural language input and relevance scores
