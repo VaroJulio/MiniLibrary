@@ -6,6 +6,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Ratings system: POST /api/books/{id}/ratings (create/update with loan validation) [MINI-51]
+- Delete own rating: DELETE /api/books/{id}/ratings with average recalculation [MINI-51]
+- Book ratings list: GET /api/books/{id}/ratings paginated (20/page) [MINI-51]
+- Vote review useful: POST /api/ratings/{id}/useful (one vote per member, no self-votes) [MINI-51]
+- Automatic AverageRating and TotalRatings recalculation on create/update/delete [MINI-51]
+- ForbiddenException for 403 responses in error handling middleware [MINI-51]
+- IReviewVoteRepository for review vote persistence [MINI-51]
+- FsCheck property tests for rating average correctness (6 tests) [MINI-51]
 - User management endpoints: GET /api/users (Admin), PUT /api/users/{id}/role (Admin), GET /api/users/profile [MINI-50]
 - AssignRole command with sole-Admin protection (prevents last Admin from losing role) [MINI-50]
 - Dashboard stats endpoint: GET /api/dashboard/stats (Librarian, Admin) [MINI-50]

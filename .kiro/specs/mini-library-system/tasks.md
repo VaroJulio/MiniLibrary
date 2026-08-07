@@ -267,8 +267,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Reject Member access with 403
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 13. Implement Ratings and Reviews
-  - [ ] 13.1 Implement Rating commands
+- [x] 13. Implement Ratings and Reviews
+  - [x] 13.1 Implement Rating commands
     - Create `CreateOrUpdateRatingCommand`/Handler/Validator
     - Validate: score 1–5, review text max 1000 chars, member must have completed loan for the book
     - If rating exists for (user, book): update existing; otherwise create new
@@ -276,7 +276,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Create `DeleteRatingCommand`/Handler (member can delete own rating, recalculates average)
     - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.7, 16.8_
 
-  - [ ] 13.2 Implement Rating queries and controller
+  - [x] 13.2 Implement Rating queries and controller
     - Create `GetBookRatingsQuery`/Handler: paginated reviews (20/page) with author name, score, text, date
     - Include in book detail response: average rating, total ratings, last 5 reviews
     - Create `VoteReviewUsefulCommand`/Handler: 1 vote per member per review, reject self-votes with 403
@@ -287,7 +287,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - POST `/api/ratings/{id}/useful` — Vote useful (Member)
     - _Requirements: 16.1, 16.5, 16.6, 20.6, 20.9_
 
-  - [ ] 13.3 Write property tests for rating average correctness
+  - [x] 13.3 Write property tests for rating average correctness
     - **Property 12: Rating Average Correctness** — Generate random sets of N ratings and verify AverageRating = round(sum/N, 1) and TotalRatings = N
     - **Validates: Requirements 16.4, 16.1, 16.8**
 

@@ -56,6 +56,12 @@ public class ErrorHandlingMiddleware
                 conflictEx.Message,
                 (IDictionary<string, string[]>?)null),
 
+            ForbiddenException forbiddenEx => (
+                StatusCodes.Status403Forbidden,
+                "Forbidden",
+                forbiddenEx.Message,
+                (IDictionary<string, string[]>?)null),
+
             UnauthorizedAccessException unauthorizedEx => (
                 StatusCodes.Status403Forbidden,
                 "Forbidden",
