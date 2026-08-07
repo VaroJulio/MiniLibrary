@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Wishlist endpoints: POST /api/wishlist, DELETE /api/wishlist/{bookId}, GET /api/wishlist (max 20 entries) [MINI-40]
+- Notification endpoints: GET /api/notifications (max 50), PUT /api/notifications/{id}/read [MINI-40]
+- NotificationService implementation (in-app + email placeholder) [MINI-40]
+- Availability alerts: notify wishlist watchers on BookReturnedEvent [MINI-40]
+- LoanExpirationJob: daily background service for expiring/overdue loan alerts [MINI-40]
+- Respects user email notification preferences (opt-in/opt-out) [MINI-40]
+- FsCheck property tests for wishlist size limit (4 tests) [MINI-40]
 - Book rankings endpoint: GET /api/rankings/books (min 3 ratings, filters, sort, 15min cache) [MINI-39]
 - Reader rankings endpoint: GET /api/rankings/readers (period filters, own position, 1h cache) [MINI-39]
 - Category rankings endpoint: GET /api/rankings/categories (best-rated book per category) [MINI-39]

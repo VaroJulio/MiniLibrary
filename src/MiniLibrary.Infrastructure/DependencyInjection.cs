@@ -37,6 +37,10 @@ public static class DependencyInjection
         services.AddScoped<IRecommendationService, OpenAiRecommendationService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IRankingsService, RankingsService>();
+        services.AddScoped<INotificationService, NotificationService>();
+
+        // Background jobs
+        services.AddHostedService<Jobs.LoanExpirationJob>();
 
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
