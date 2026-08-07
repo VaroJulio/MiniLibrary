@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBookEmbeddingRepository, BookEmbeddingRepository>();
+        services.AddScoped<IReviewVoteRepository, ReviewVoteRepository>();
 
         return services;
     }
