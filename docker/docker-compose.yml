@@ -40,6 +40,12 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - minilibrary-net
     restart: unless-stopped
@@ -48,13 +54,14 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.web
+      args:
+        VITE_API_BASE_URL: /api
     container_name: minilibrary-web
-    environment:
-      - VITE_API_URL=http://localhost:5000
     ports:
       - "3000:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - minilibrary-net
     restart: unless-stopped
