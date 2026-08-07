@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- AI-powered recommendations endpoint: GET /api/recommendations (MemberOnly) [MINI-49]
+- OpenAI Recommendation Service (GPT-4o-mini, 10-second timeout, popular books fallback) [MINI-49]
+- Members with < 3 completed loans receive popular book suggestions [MINI-49]
+- GetRecommendationsQuery with 1-hour cache per member, invalidated on loan/return [MINI-49]
+- Excludes books already read or currently on loan by the member [MINI-49]
+- Each recommendation includes title, author, category, and justification (max 200 chars) [MINI-49]
+- FsCheck property tests for recommendation exclusion invariant [MINI-49]
 - Semantic search endpoint: GET /api/search/semantic with natural language queries [MINI-48]
 - OpenAI Embedding Service (text-embedding-3-small, 3-second timeout, graceful fallback) [MINI-48]
 - Cosine similarity search against stored BookEmbeddings [MINI-48]
