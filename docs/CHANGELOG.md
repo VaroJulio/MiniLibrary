@@ -6,6 +6,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- User management endpoints: GET /api/users (Admin), PUT /api/users/{id}/role (Admin), GET /api/users/profile [MINI-50]
+- AssignRole command with sole-Admin protection (prevents last Admin from losing role) [MINI-50]
+- Dashboard stats endpoint: GET /api/dashboard/stats (Librarian, Admin) [MINI-50]
+- Loan metrics endpoint: GET /api/dashboard/loan-metrics with period aggregation (7d, 30d, 12m) [MINI-50]
+- Popular categories and top 10 most-borrowed books in loan metrics [MINI-50]
+- IDashboardService for aggregate statistics computation [MINI-50]
 - AI-powered recommendations endpoint: GET /api/recommendations (MemberOnly) [MINI-49]
 - OpenAI Recommendation Service (GPT-4o-mini, 10-second timeout, popular books fallback) [MINI-49]
 - Members with < 3 completed loans receive popular book suggestions [MINI-49]

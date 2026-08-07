@@ -248,8 +248,8 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - **Property 7: Recommendation Exclusion Invariant** — Generate random member histories and recommendation sets, verify no recommended book appears in member's history or active loans
     - **Validates: Requirements 5.5**
 
-- [ ] 12. Implement User Management and Dashboard
-  - [ ] 12.1 Implement User Management commands and queries
+- [x] 12. Implement User Management and Dashboard
+  - [x] 12.1 Implement User Management commands and queries
     - Create `GetUsersQuery`/Handler with paginated user list (Admin only)
     - Create `AssignRoleCommand`/Handler with validation (prevent sole Admin from changing own role)
     - Implement `UsersController`:
@@ -258,7 +258,7 @@ This implementation plan builds the MiniLibrary system incrementally from founda
       - GET `/api/users/profile` — Current user profile
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [ ] 12.2 Implement Dashboard statistics queries
+  - [x] 12.2 Implement Dashboard statistics queries
     - Create `GetDashboardStatsQuery`/Handler: total books, available, checked-out, active loans, users by role
     - Create `GetLoanMetricsQuery`/Handler: loans by period (7d, 30d, 12m), popular categories, top 10 most-borrowed books
     - Implement `DashboardController`:
