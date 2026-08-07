@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- CI pipeline: backend build+test (SQL Server service), frontend TypeScript check + ESLint + build [MINI-56]
+- CD pipeline: Docker image build/push to ghcr.io with Buildx cache and version tagging [MINI-56]
+- Nginx API proxy (/api → backend), health endpoint, security headers [MINI-56]
+- Docker Compose healthchecks and dependency ordering for full-stack startup [MINI-56]
 - Recommendations page with personalized cards (title, author, category, justification) [MINI-44]
 - Dashboard page with stats cards, users by role, popular categories, top books, loan activity [MINI-44]
 - RatingForm (star selector + review text) and StarDisplay component [MINI-44]

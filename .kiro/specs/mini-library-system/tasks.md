@@ -460,25 +460,25 @@ This implementation plan builds the MiniLibrary system incrementally from founda
     - Implement notification preferences settings page
     - _Requirements: 20.3, 20.5, 20.7, 18.4, 18.5, 7.1, 7.2, 19.10_
 
-- [ ] 22. Checkpoint - Frontend feature modules complete
+- [x] 22. Checkpoint - Frontend feature modules complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 23. Implement CI/CD Pipeline and Docker Configuration
-  - [ ] 23.1 Configure GitHub Actions CI pipeline
+- [x] 23. Implement CI/CD Pipeline and Docker Configuration
+  - [x] 23.1 Configure GitHub Actions CI pipeline
     - Update `.github/workflows/ci.yml`: build, run tests (unit + property + integration), linting
     - Configure TestContainers for SQL Server in CI environment
     - Add frontend build and lint steps (Vite build, ESLint, TypeScript check)
     - Block PR merge on CI failures
     - _Requirements: 10.2, 10.4_
 
-  - [ ] 23.2 Configure GitHub Actions CD pipeline and Docker images
+  - [x] 23.2 Configure GitHub Actions CD pipeline and Docker images
     - Update `.github/workflows/cd.yml`: build and push Docker images to ghcr.io on main branch push
     - Update `docker/Dockerfile.api` for production API build
     - Update `docker/Dockerfile.web` for production frontend build (Nginx)
     - Verify `docker-compose.yml` brings up full environment (API + Frontend + SQL Server) with one command
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [ ] 23.3 Create seed data script
+  - [x] 23.3 Create seed data script
     - Update `scripts/seed-data.sh` to populate demonstration data: sample books (varied categories), users (Admin, Librarian, Members), sample loans, ratings, and badges
     - Ensure seed script is idempotent (can run multiple times safely)
     - _Requirements: 10.5_
