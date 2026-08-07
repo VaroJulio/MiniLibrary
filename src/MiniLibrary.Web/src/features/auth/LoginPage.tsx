@@ -10,11 +10,11 @@ export default function LoginPage() {
   const authUrl = apiBaseUrl.startsWith('http') ? apiBaseUrl : 'http://localhost:5000';
 
   const handleGoogleLogin = () => {
-    window.location.href = `${authUrl}/auth/login/google`;
+    window.location.href = `${authUrl}/api/auth/login/google`;
   };
 
   const handleMicrosoftLogin = () => {
-    window.location.href = `${authUrl}/auth/login/microsoft`;
+    window.location.href = `${authUrl}/api/auth/login/microsoft`;
   };
 
   return (

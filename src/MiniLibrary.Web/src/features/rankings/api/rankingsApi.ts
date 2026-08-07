@@ -28,13 +28,13 @@ export async function fetchBookRankings(params?: {
   category?: string;
   sortBy?: string;
 }): Promise<BookRanking[]> {
-  const { data } = await apiClient.get<BookRanking[]>('/rankings/books', { params });
-  return data;
+  const { data } = await apiClient.get<{ data: BookRanking[] }>('/rankings/books', { params });
+  return data.data;
 }
 
 export async function fetchReaderRankings(period?: string): Promise<ReaderRankingsResponse> {
-  const { data } = await apiClient.get<ReaderRankingsResponse>('/rankings/readers', {
+  const { data } = await apiClient.get<{ data: ReaderRanking[]; myPosition: number | null }>('/rankings/readers', {
     params: period ? { period } : undefined,
   });
-  return data;
+  return { rankings: data.data, myPosition: data.myPosition };
 }

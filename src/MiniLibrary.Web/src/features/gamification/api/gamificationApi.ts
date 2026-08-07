@@ -1,23 +1,35 @@
 import { apiClient } from '@/services/apiClient';
-import type { Badge } from '@/types/models';
+
+export interface EarnedBadge {
+  badgeType: string;
+  earnedAt: string;
+}
+
+export interface PendingBadge {
+  badgeType: string;
+  currentCount: number;
+  requiredCount: number;
+  progressPercent: number;
+}
+
+export interface UserBadgesResponse {
+  earnedBadges: EarnedBadge[];
+  pendingBadges: PendingBadge[];
+}
 
 export interface LeaderboardEntry {
+  position: number;
   userId: string;
   name: string;
   badgeCount: number;
 }
 
-export async function fetchMyBadges(): Promise<Badge[]> {
-  const { data } = await apiClient.get<Badge[]>('/gamification/badges');
-  return data;
-}
-
-export async function fetchUserBadges(userId: string): Promise<Badge[]> {
-  const { data } = await apiClient.get<Badge[]>(`/gamification/badges/${userId}`);
-  return data;
+export async function fetchMyBadges(): Promise<UserBadgesResponse> {
+  const { data } = await apiClient.get<{ data: UserBadgesResponse }>('/gamification/badges');
+  return data.data;
 }
 
 export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
-  const { data } = await apiClient.get<LeaderboardEntry[]>('/gamification/leaderboard');
-  return data;
+  const { data } = await apiClient.get<{ data: LeaderboardEntry[] }>('/gamification/leaderboard');
+  return data.data;
 }
