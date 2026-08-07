@@ -1,8 +1,8 @@
-# Stage 1: Restore dependencies
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS restore
+# Stage 1: Build and publish
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project files for restore
+# Copy project files for restore (layer caching)
 COPY MiniLibrary.sln ./
 COPY Directory.Build.props ./
 COPY src/MiniLibrary.Domain/MiniLibrary.Domain.csproj src/MiniLibrary.Domain/
@@ -12,17 +12,18 @@ COPY src/MiniLibrary.API/MiniLibrary.API.csproj src/MiniLibrary.API/
 
 RUN dotnet restore src/MiniLibrary.API/MiniLibrary.API.csproj
 
-# Stage 2: Build and publish
-FROM restore AS build
+# Copy source and publish
 COPY src/ src/
 RUN dotnet publish src/MiniLibrary.API/MiniLibrary.API.csproj \
     -c Release \
-    -o /app/publish \
-    --no-restore
+    -o /app/publish
 
-# Stage 3: Runtime
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
 RUN adduser --disabled-password --gecos "" appuser
