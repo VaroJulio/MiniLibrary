@@ -33,7 +33,7 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "MiniLibrary";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "MiniLibrary";
 
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,19 +59,31 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero
     };
-})
-.AddGoogle(options =>
-{
-    options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? string.Empty;
-    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
-    options.SaveTokens = true;
-})
-.AddMicrosoftAccount(options =>
-{
-    options.ClientId = builder.Configuration["Authentication:Microsoft:ClientId"] ?? string.Empty;
-    options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"] ?? string.Empty;
-    options.SaveTokens = true;
 });
+
+// Only register OAuth providers if credentials are configured
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var msClientId = builder.Configuration["Authentication:Microsoft:ClientId"];
+
+if (!string.IsNullOrEmpty(googleClientId))
+{
+    authBuilder.AddGoogle(options =>
+    {
+        options.ClientId = googleClientId;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? string.Empty;
+        options.SaveTokens = true;
+    });
+}
+
+if (!string.IsNullOrEmpty(msClientId))
+{
+    authBuilder.AddMicrosoftAccount(options =>
+    {
+        options.ClientId = msClientId;
+        options.ClientSecret = builder.Configuration["Authentication:Microsoft:ClientSecret"] ?? string.Empty;
+        options.SaveTokens = true;
+    });
+}
 
 // Configure role-based authorization policies (Req 7.4)
 builder.Services.AddAuthorizationPolicies();
