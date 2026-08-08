@@ -28,6 +28,7 @@ import { CheckOutButton } from '@/features/loans/components/CheckOutButton';
 import { WishlistButton } from './components/WishlistButton';
 import { RatingForm } from '@/features/ratings/components/RatingForm';
 import { useHasReadBook } from '@/features/loans/hooks/useLoans';
+import { useBookRatings } from '@/features/ratings/hooks/useRatings';
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +38,7 @@ export default function BookDetailPage() {
   const deleteMutation = useDeleteBook();
   const [showEditForm, setShowEditForm] = useState(false);
   const hasReadBook = useHasReadBook(id);
+  const { data: ratingsData } = useBookRatings(id ?? '', 1, 5);
 
   const canManageBooks = user?.role === 'Admin' || user?.role === 'Librarian';
 
@@ -160,13 +162,13 @@ export default function BookDetailPage() {
           </Paper>
 
           {/* Recent Reviews */}
-          {book.recentRatings && book.recentRatings.length > 0 && (
+          {ratingsData && ratingsData.data.length > 0 && (
             <Paper sx={{ p: 3, mt: 2 }}>
               <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
                 Recent Reviews
               </Typography>
               <Stack spacing={2} divider={<Divider />}>
-                {book.recentRatings.map((rating) => (
+                {ratingsData.data.map((rating) => (
                   <Box key={rating.id}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                       <Typography variant="subtitle2">{rating.userName}</Typography>

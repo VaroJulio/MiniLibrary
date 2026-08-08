@@ -22,7 +22,7 @@ export interface UpdateBookRequest extends CreateBookRequest {
 }
 
 export interface BookDetailResponse extends Book {
-  recentRatings: {
+  recentRatings?: {
     id: string;
     userName: string;
     score: number;
