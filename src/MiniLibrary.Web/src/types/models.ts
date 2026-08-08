@@ -50,10 +50,9 @@ export interface Recommendation {
 }
 
 export interface WishlistEntry {
-  id: string;
   bookId: string;
-  bookTitle: string;
-  bookAuthor: string;
+  title: string;
+  author: string;
   bookStatus: BookStatus;
   addedAt: string;
 }
