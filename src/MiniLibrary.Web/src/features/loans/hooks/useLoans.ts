@@ -42,5 +42,10 @@ export function useHasReadBook(bookId: string | undefined) {
   });
 
   if (!bookId || !data) return false;
-  return data.data.some((loan) => loan.bookId === bookId && loan.returnedAt !== null);
+
+  const hasReturnedLoan = data.data.some((loan) => loan.bookId === bookId && loan.returnedAt !== null);
+  const hasActiveLoan = data.data.some((loan) => loan.bookId === bookId && loan.returnedAt === null);
+
+  // Show rating form only if user has completed a loan AND doesn't currently have the book checked out
+  return hasReturnedLoan && !hasActiveLoan;
 }
