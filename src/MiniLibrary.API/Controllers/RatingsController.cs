@@ -8,6 +8,8 @@ using MiniLibrary.Application.Ratings.Commands.DeleteRating;
 using MiniLibrary.Application.Ratings.Commands.VoteReviewUseful;
 using MiniLibrary.Application.Ratings.DTOs;
 using MiniLibrary.Application.Ratings.Queries.GetBookRatings;
+using MiniLibrary.Application.Ratings.Queries.GetMyRatings;
+using MiniLibrary.Application.Ratings.Queries.GetRecentRatings;
 
 namespace MiniLibrary.API.Controllers;
 
@@ -49,6 +51,81 @@ public class RatingsController : ControllerBase
         CancellationToken ct = default)
     {
         var query = new GetBookRatingsQuery { BookId = bookId, Page = page, PageSize = pageSize };
+        var result = await _mediator.Send(query, ct);
+
+        return Ok(new
+        {
+            data = result.Items,
+            pagination = new
+            {
+                totalCount = result.TotalCount,
+                pageSize = result.PageSize,
+                currentPage = result.Page,
+                totalPages = result.TotalPages,
+                hasNext = result.HasNext,
+                hasPrevious = result.HasPrevious
+            }
+        });
+    }
+
+    /// <summary>
+    /// Gets the current user's ratings across all books, paginated.
+    /// </summary>
+    /// <param name="page">Page number (default: 1).</param>
+    /// <param name="pageSize">Items per page (default: 20).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Paginated list of the user's own ratings with book info.</returns>
+    /// <response code="200">User ratings returned successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    [HttpGet("ratings/my")]
+    [Authorize(Policy = AuthorizationConfig.Policies.MemberOnly)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetMyRatings(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var userId = _currentUserService.UserId;
+        if (userId is null)
+            return Unauthorized();
+
+        var query = new GetMyRatingsQuery { UserId = userId.Value, Page = page, PageSize = pageSize };
+        var result = await _mediator.Send(query, ct);
+
+        return Ok(new
+        {
+            data = result.Items,
+            pagination = new
+            {
+                totalCount = result.TotalCount,
+                pageSize = result.PageSize,
+                currentPage = result.Page,
+                totalPages = result.TotalPages,
+                hasNext = result.HasNext,
+                hasPrevious = result.HasPrevious
+            }
+        });
+    }
+
+    /// <summary>
+    /// Gets recent community ratings across all books, paginated.
+    /// </summary>
+    /// <param name="page">Page number (default: 1).</param>
+    /// <param name="pageSize">Items per page (default: 20).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Paginated list of recent community ratings.</returns>
+    /// <response code="200">Community ratings returned successfully.</response>
+    /// <response code="401">User is not authenticated.</response>
+    [HttpGet("ratings/recent")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetRecentRatings(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        var query = new GetRecentRatingsQuery { Page = page, PageSize = pageSize };
         var result = await _mediator.Send(query, ct);
 
         return Ok(new
