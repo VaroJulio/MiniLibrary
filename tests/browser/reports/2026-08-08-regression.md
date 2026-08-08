@@ -1,28 +1,28 @@
 # Browser Functional Test Report
 
-- **Date**: 2026-08-08 12:35
+- **Date**: 2026-08-08 12:46
 - **Type**: regression
-- **Branch**: feature/MINI-77-browser-functional-tests
-- **Environment**: localhost:3000 / localhost:5000 (Docker)
-- **Tool**: API-level validation + Playwright MCP (headless)
+- **Environment**: http://localhost:3000 / http://localhost:5000 (Docker)
+- **Tool**: Playwright (headless browser + screenshots)
+- **Screenshots**: Yes — see `{TODAY}-screenshots/`
 
 ## Summary
 
 | Total | Passed | Failed | Skipped |
 |-------|--------|--------|---------|
-| 10 | 10 | 0 | 0 |
+| 10 | 8 | 0 | 2 |
 
 ## Results
 
-| # | Test Case | Module | Status | Notes |
-|---|-----------|--------|--------|-------|
-| 1 | Login Dev Member | Auth | PASS |  |
-| 2 | Login Dev Admin | Auth | PASS |  |
-| 3 | Login Dev Librarian | Auth | PASS |  |
-| 4 | Book catalog loads | Catalog | PASS | 5 books, total=24, first='A Brief History of Time' |
-| 5 | Book detail shows info | Catalog | PASS | 'A Brief History of Time' by Stephen Hawking |
-| 6 | Search returns results | Search | PASS | 10 results for 'Foundation' |
-| 7 | Checkout a book | Loans | PASS | Checked out 'A Brief History of Time' |
-| 8 | Return a book | Loans | PASS | Returned bookId=870906c9-6677-494e-9edd-3f4b832c3bda |
-| 9 | All pages load | Navigation | PASS | 8/8 endpoints OK |
-| 10 | Frontend loads (dark mode base) | UI | PASS | HTML size=476 bytes |
+| # | Test Case | Module | Status | Notes | Screenshot |
+|---|-----------|--------|--------|------- | --- |
+| 1 | Login Dev Member | Auth | **PASS** |  | [tc01-login-member.png](2026-08-08-screenshots/tc01-login-member.png) |
+| 2 | Login Dev Admin | Auth | **PASS** | Admin nav visible: yes | [tc02-login-admin.png](2026-08-08-screenshots/tc02-login-admin.png) |
+| 3 | Login Dev Librarian | Auth | **PASS** |  | [tc03-login-librarian.png](2026-08-08-screenshots/tc03-login-librarian.png) |
+| 4 | Book catalog loads | Catalog | **PASS** | Books visible on page | [tc04-catalog.png](2026-08-08-screenshots/tc04-catalog.png) |
+| 5 | Book detail shows info | Catalog | **PASS** | Detail page content found | [tc05-book-detail.png](2026-08-08-screenshots/tc05-book-detail.png) |
+| 6 | Search returns results | Search | **PASS** | Search results visible | [tc06-search-results.png](2026-08-08-screenshots/tc06-search-results.png) |
+| 7 | Checkout a book | Loans | **SKIPPED** | No available books | |
+| 8 | Return a book | Loans | **SKIPPED** | No active loans | [tc08-return-no-active.png](2026-08-08-screenshots/tc08-return-no-active.png) |
+| 9 | All pages load | Navigation | **PASS** | 8/8 pages OK | [tc09-navigation-last-page.png](2026-08-08-screenshots/tc09-navigation-last-page.png) |
+| 10 | Dark mode toggle persists | UI | **PASS** | Toggle + reload captured | [tc10-dark-mode-toggled.png](2026-08-08-screenshots/tc10-dark-mode-toggled.png) |

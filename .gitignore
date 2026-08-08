@@ -37,3 +37,4 @@ coverage/
 !.kiro/steering/
 !.kiro/hooks/
 docker/.env
+tests/browser/.venv/
