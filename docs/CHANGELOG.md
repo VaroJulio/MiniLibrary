@@ -10,6 +10,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - `EmailOptions` configuration class for SMTP settings (host, port, TLS, credentials) [MINI-68]
 - Graceful degradation: emails skipped with warning log when SMTP is not configured [MINI-68]
 - Resilient email delivery: failures are logged but don't break the notification flow [MINI-68]
+- Browser functional test infrastructure using Microsoft Playwright MCP [MINI-77]
+- 7 E2E test scenarios: login, catalog, search, loans, ratings, admin, dark mode [MINI-77]
+- ADR-0003: browser test tool selection documenting Playwright MCP choice [MINI-77]
+- Kiro hook for browser smoke test reminder after task completion [MINI-77]
 
 ### Fixed
 - Dark mode: primary color too dark (#1E3A5F) causing invisible text/borders on dark surfaces — now uses #90CAF9 in dark mode [MINI-76]
