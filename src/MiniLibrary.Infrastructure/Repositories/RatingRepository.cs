@@ -71,6 +71,17 @@ public sealed class RatingRepository : IRatingRepository
         return (Math.Round(average, 1), count);
     }
 
+    public async Task<int> GetUserRatingCountAsync(Guid userId, CancellationToken ct)
+    {
+        return await _context.Ratings.CountAsync(r => r.UserId == userId, ct);
+    }
+
+    public async Task<int> GetUserUsefulReviewCountAsync(Guid userId, int minVotes, CancellationToken ct)
+    {
+        return await _context.Ratings
+            .CountAsync(r => r.UserId == userId && r.UsefulVotes >= minVotes, ct);
+    }
+
     public async Task AddAsync(Rating rating, CancellationToken ct)
     {
         await _context.Ratings.AddAsync(rating, ct);

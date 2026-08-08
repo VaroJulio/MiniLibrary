@@ -141,17 +141,13 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
 
     private async Task<bool> CheckRatingCountAsync(Guid userId, int minCount, CancellationToken ct)
     {
-        // Use a simple approach: check via the repository
-        var paging = new Domain.Common.PaginationParams(1, 1);
-        // We'll check if user has at least minCount ratings by checking loan history books that have ratings
-        // For a proper implementation, we'd add a GetUserRatingCountAsync to IRatingRepository
-        // For now, approximate: if user has enough completed loans, they likely have ratings
-        return await Task.FromResult(false); // Conservative: rely on RatingCreatedEvent trigger
+        var count = await _ratingRepository.GetUserRatingCountAsync(userId, ct);
+        return count >= minCount;
     }
 
-    private Task<bool> CheckUsefulReviewsAsync(Guid userId, int minCount, CancellationToken ct)
+    private async Task<bool> CheckUsefulReviewsAsync(Guid userId, int minCount, CancellationToken ct)
     {
-        // Placeholder: would need a query for ratings by user with UsefulVotes > 0
-        return Task.FromResult(false); // Conservative
+        var count = await _ratingRepository.GetUserUsefulReviewCountAsync(userId, 1, ct);
+        return count >= minCount;
     }
 }

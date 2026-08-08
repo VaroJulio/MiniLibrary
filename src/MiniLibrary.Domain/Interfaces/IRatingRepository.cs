@@ -13,6 +13,8 @@ public interface IRatingRepository
     Task<PagedResult<Rating>> GetBookRatingsAsync(Guid bookId, PaginationParams paging, CancellationToken ct);
     Task<List<Rating>> GetRecentBookRatingsAsync(Guid bookId, int count, CancellationToken ct);
     Task<(decimal Average, int Count)> CalculateBookAverageAsync(Guid bookId, CancellationToken ct);
+    Task<int> GetUserRatingCountAsync(Guid userId, CancellationToken ct);
+    Task<int> GetUserUsefulReviewCountAsync(Guid userId, int minVotes, CancellationToken ct);
     Task AddAsync(Rating rating, CancellationToken ct);
     Task UpdateAsync(Rating rating, CancellationToken ct);
     Task DeleteAsync(Rating rating, CancellationToken ct);
