@@ -118,10 +118,26 @@ export function AppLayout() {
                 mx: 1,
                 borderRadius: 2,
                 '&.Mui-selected': {
-                  bgcolor: 'primary.main',
-                  color: 'primary.contrastText',
-                  '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
-                  '&:hover': { bgcolor: 'primary.dark' },
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'rgba(144, 202, 249, 0.16)'
+                      : 'primary.main',
+                  color: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? 'primary.main'
+                      : 'primary.contrastText',
+                  '& .MuiListItemIcon-root': {
+                    color: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'primary.main'
+                        : 'primary.contrastText',
+                  },
+                  '&:hover': {
+                    bgcolor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(144, 202, 249, 0.24)'
+                        : 'primary.dark',
+                  },
                 },
               }}
             >

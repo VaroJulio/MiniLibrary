@@ -27,9 +27,11 @@ export function CheckInButton({ bookId, bookTitle, disabled }: CheckInButtonProp
       <Button
         variant="outlined"
         size="small"
+        color="primary"
         startIcon={<AssignmentReturnIcon />}
         onClick={handleCheckIn}
         disabled={disabled || mutation.isPending}
+        sx={{ whiteSpace: 'nowrap' }}
       >
         {mutation.isPending ? 'Returning...' : 'Return'}
       </Button>

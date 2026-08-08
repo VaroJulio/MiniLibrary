@@ -84,6 +84,15 @@ export default function LoginPage() {
               startIcon={<GoogleIcon />}
               onClick={handleGoogleLogin}
               fullWidth
+              sx={{
+                bgcolor: (theme) =>
+                  theme.palette.mode === 'dark' ? '#4285F4' : 'primary.main',
+                color: '#FFFFFF',
+                '&:hover': {
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark' ? '#3367D6' : 'primary.dark',
+                },
+              }}
             >
               Sign in with Google
             </Button>
@@ -93,6 +102,18 @@ export default function LoginPage() {
               startIcon={<MicrosoftIcon />}
               onClick={handleMicrosoftLogin}
               fullWidth
+              sx={{
+                borderColor: (theme) =>
+                  theme.palette.mode === 'dark' ? '#90CAF9' : 'primary.main',
+                color: (theme) =>
+                  theme.palette.mode === 'dark' ? '#90CAF9' : 'primary.main',
+                '&:hover': {
+                  borderColor: (theme) =>
+                    theme.palette.mode === 'dark' ? '#BBDEFB' : 'primary.dark',
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark' ? 'rgba(144, 202, 249, 0.08)' : 'rgba(30, 58, 95, 0.04)',
+                },
+              }}
             >
               Sign in with Microsoft
             </Button>
