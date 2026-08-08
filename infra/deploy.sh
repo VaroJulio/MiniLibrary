@@ -60,6 +60,8 @@ DEPLOYMENT_OUTPUT=$(az deployment group create \
         googleClientId="${GOOGLE_CLIENT_ID:-}" \
         googleClientSecret="${GOOGLE_CLIENT_SECRET:-}" \
         openAiApiKey="${OPENAI_API_KEY:-}" \
+        emailSenderEmail="${EMAIL_SENDER_EMAIL:-}" \
+        emailAppPassword="${EMAIL_APP_PASSWORD:-}" \
         apiImage="$API_IMAGE" \
     --query properties.outputs \
     --output json)
