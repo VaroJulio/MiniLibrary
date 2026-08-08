@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Functional Ratings & Reviews page with "My Reviews" and "Recent Community Reviews" sections [MINI-72]
+- `GET /api/ratings/my` endpoint — current user's ratings across all books (paginated) [MINI-72]
+- `GET /api/ratings/recent` endpoint — recent community ratings feed (paginated) [MINI-72]
+- ReviewCard reusable component for rating display with vote/delete actions [MINI-72]
 - `POST /api/auth/dev-token` endpoint for development without OAuth (controlled by `Authentication:EnableDevTokens`) [MINI-58]
 - Auto-apply EF migrations on startup (`Database.Migrate()`, idempotent) [MINI-58]
 - `prompt=select_account` on Google/Microsoft OAuth (always shows account picker) [MINI-58]
