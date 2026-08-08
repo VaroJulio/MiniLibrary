@@ -33,3 +33,14 @@ export function useCheckIn() {
     },
   });
 }
+
+export function useHasReadBook(bookId: string | undefined) {
+  const { data } = useQuery({
+    queryKey: [LOAN_HISTORY_KEY, 'all'],
+    queryFn: () => fetchLoanHistory(1, 100),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (!bookId || !data) return false;
+  return data.data.some((loan) => loan.bookId === bookId && loan.returnedAt !== null);
+}

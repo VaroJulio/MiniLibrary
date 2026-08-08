@@ -26,6 +26,8 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { BookFormDialog } from './components/BookFormDialog';
 import { CheckOutButton } from '@/features/loans/components/CheckOutButton';
 import { WishlistButton } from './components/WishlistButton';
+import { RatingForm } from '@/features/ratings/components/RatingForm';
+import { useHasReadBook } from '@/features/loans/hooks/useLoans';
 
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +36,7 @@ export default function BookDetailPage() {
   const { data: book, isLoading, error } = useBookDetail(id);
   const deleteMutation = useDeleteBook();
   const [showEditForm, setShowEditForm] = useState(false);
+  const hasReadBook = useHasReadBook(id);
 
   const canManageBooks = user?.role === 'Admin' || user?.role === 'Librarian';
 
@@ -183,6 +186,16 @@ export default function BookDetailPage() {
                   </Box>
                 ))}
               </Stack>
+            </Paper>
+          )}
+
+          {/* Rate this Book */}
+          {user && hasReadBook && (
+            <Paper sx={{ p: 3, mt: 2 }}>
+              <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+                Rate this Book
+              </Typography>
+              <RatingForm bookId={book.id} />
             </Paper>
           )}
         </Grid>
