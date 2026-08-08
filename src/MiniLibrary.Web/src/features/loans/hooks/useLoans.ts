@@ -36,11 +36,15 @@ export function useCheckIn() {
 
 export function useHasReadBook(bookId: string | undefined) {
   const { data } = useQuery({
-    queryKey: [LOAN_HISTORY_KEY, 'all'],
+    queryKey: [LOAN_HISTORY_KEY, 1, 100],
     queryFn: () => fetchLoanHistory(1, 100),
-    staleTime: 5 * 60 * 1000,
   });
 
   if (!bookId || !data) return false;
-  return data.data.some((loan) => loan.bookId === bookId && loan.returnedAt !== null);
+
+  const hasReturnedLoan = data.data.some((loan) => loan.bookId === bookId && loan.returnedAt !== null);
+  const hasActiveLoan = data.data.some((loan) => loan.bookId === bookId && loan.returnedAt === null);
+
+  // Show rating form only if user has completed a loan AND doesn't currently have the book checked out
+  return hasReturnedLoan && !hasActiveLoan;
 }
