@@ -3,11 +3,11 @@ import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
 import { useCheckIn } from '../hooks/useLoans';
 
 interface CheckInButtonProps {
-  loanId: string;
+  bookId: string;
   disabled?: boolean;
 }
 
-export function CheckInButton({ loanId, disabled }: CheckInButtonProps) {
+export function CheckInButton({ bookId, disabled }: CheckInButtonProps) {
   const mutation = useCheckIn();
 
   return (
@@ -15,7 +15,7 @@ export function CheckInButton({ loanId, disabled }: CheckInButtonProps) {
       variant="outlined"
       size="small"
       startIcon={<AssignmentReturnIcon />}
-      onClick={() => mutation.mutate(loanId)}
+      onClick={() => mutation.mutate(bookId)}
       disabled={disabled || mutation.isPending}
     >
       {mutation.isPending ? 'Returning...' : 'Return'}

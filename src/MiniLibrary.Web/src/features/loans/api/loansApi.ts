@@ -15,6 +15,6 @@ export async function checkOutBook(bookId: string): Promise<void> {
   await apiClient.post('/loans/checkout', { bookId });
 }
 
-export async function checkInBook(loanId: string): Promise<void> {
-  await apiClient.post('/loans/checkin', { loanId });
+export async function checkInBook(bookId: string): Promise<void> {
+  await apiClient.post('/loans/checkin', { bookId });
 }

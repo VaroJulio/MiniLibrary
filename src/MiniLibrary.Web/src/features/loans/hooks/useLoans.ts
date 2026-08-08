@@ -25,7 +25,7 @@ export function useCheckOut() {
 export function useCheckIn() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (loanId: string) => checkInBook(loanId),
+    mutationFn: (bookId: string) => checkInBook(bookId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [LOAN_HISTORY_KEY] });
       queryClient.invalidateQueries({ queryKey: ['books'] });
