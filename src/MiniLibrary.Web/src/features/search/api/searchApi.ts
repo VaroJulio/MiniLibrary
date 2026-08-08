@@ -43,8 +43,8 @@ export async function searchBooks(
 }
 
 export async function semanticSearch(query: string): Promise<SemanticSearchResponse> {
-  const { data } = await apiClient.get<SemanticSearchResponse>('/search/semantic', {
+  const { data } = await apiClient.get<{ data: SemanticSearchResult[]; usedFallback: boolean; totalResults: number }>('/search/semantic', {
     params: { q: query },
   });
-  return data;
+  return { results: data.data, usedFallback: data.usedFallback };
 }
