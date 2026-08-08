@@ -88,3 +88,13 @@ export async function deleteRating(bookId: string): Promise<void> {
 export async function voteUseful(ratingId: string): Promise<void> {
   await apiClient.post(`/ratings/${ratingId}/useful`);
 }
+
+export interface CanRateResponse {
+  canRate: boolean;
+  loanId: string | null;
+}
+
+export async function fetchCanRate(bookId: string): Promise<CanRateResponse> {
+  const { data } = await apiClient.get<CanRateResponse>(`/books/${bookId}/can-rate`);
+  return data;
+}

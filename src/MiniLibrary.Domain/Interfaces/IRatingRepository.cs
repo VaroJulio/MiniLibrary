@@ -9,6 +9,7 @@ namespace MiniLibrary.Domain.Interfaces;
 public interface IRatingRepository
 {
     Task<Rating?> GetByUserAndBookAsync(Guid userId, Guid bookId, CancellationToken ct);
+    Task<Rating?> GetByLoanIdAsync(Guid loanId, CancellationToken ct);
     Task<Rating?> GetByIdAsync(Guid id, CancellationToken ct);
     Task<PagedResult<Rating>> GetBookRatingsAsync(Guid bookId, PaginationParams paging, CancellationToken ct);
     Task<List<Rating>> GetRecentBookRatingsAsync(Guid bookId, int count, CancellationToken ct);

@@ -31,6 +31,9 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
         builder.Property(r => r.UpdatedAt)
             .IsRequired();
 
+        builder.Property(r => r.LoanId)
+            .IsRequired(false);
+
         // Foreign keys
         builder.HasOne(r => r.Book)
             .WithMany(b => b.Ratings)
@@ -42,13 +45,24 @@ public class RatingConfiguration : IEntityTypeConfiguration<Rating>
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(r => r.Loan)
+            .WithMany()
+            .HasForeignKey(r => r.LoanId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // Indexes
         builder.HasIndex(r => r.BookId)
             .HasDatabaseName("IX_Ratings_BookId");
 
-        // One rating per user per book (Requirement 16.3)
-        builder.HasIndex(r => new { r.UserId, r.BookId })
+        // Unique constraint: one rating per user per loan cycle
+        // LoanId is nullable (legacy ratings), so we use a filtered unique index
+        builder.HasIndex(r => new { r.UserId, r.BookId, r.LoanId })
             .IsUnique()
+            .HasFilter("[LoanId] IS NOT NULL")
+            .HasDatabaseName("IX_Ratings_UserId_BookId_LoanId");
+
+        // Keep a non-unique index on UserId+BookId for query performance
+        builder.HasIndex(r => new { r.UserId, r.BookId })
             .HasDatabaseName("IX_Ratings_UserId_BookId");
     }
 }

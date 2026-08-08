@@ -3,6 +3,7 @@ import {
   fetchBookRatings,
   fetchMyRatings,
   fetchRecentRatings,
+  fetchCanRate,
   createOrUpdateRating,
   deleteRating,
   voteUseful,
@@ -31,6 +32,14 @@ export function useRecentRatings(page: number, pageSize: number) {
   });
 }
 
+export function useCanRate(bookId: string | undefined) {
+  return useQuery({
+    queryKey: ['can-rate', bookId],
+    queryFn: () => fetchCanRate(bookId!),
+    enabled: !!bookId,
+  });
+}
+
 export function useCreateRating(bookId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -40,6 +49,7 @@ export function useCreateRating(bookId: string) {
       queryClient.invalidateQueries({ queryKey: ['book-detail', bookId] });
       queryClient.invalidateQueries({ queryKey: ['my-ratings'] });
       queryClient.invalidateQueries({ queryKey: ['recent-ratings'] });
+      queryClient.invalidateQueries({ queryKey: ['can-rate', bookId] });
     },
   });
 }
@@ -53,6 +63,7 @@ export function useDeleteRating(bookId: string) {
       queryClient.invalidateQueries({ queryKey: ['book-detail', bookId] });
       queryClient.invalidateQueries({ queryKey: ['my-ratings'] });
       queryClient.invalidateQueries({ queryKey: ['recent-ratings'] });
+      queryClient.invalidateQueries({ queryKey: ['can-rate', bookId] });
     },
   });
 }

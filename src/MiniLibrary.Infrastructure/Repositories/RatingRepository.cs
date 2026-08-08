@@ -25,6 +25,12 @@ public sealed class RatingRepository : IRatingRepository
             .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId, ct);
     }
 
+    public async Task<Rating?> GetByLoanIdAsync(Guid loanId, CancellationToken ct)
+    {
+        return await _context.Ratings
+            .FirstOrDefaultAsync(r => r.LoanId == loanId, ct);
+    }
+
     public async Task<Rating?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Ratings

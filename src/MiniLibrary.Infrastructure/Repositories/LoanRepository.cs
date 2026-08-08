@@ -79,6 +79,14 @@ public sealed class LoanRepository : ILoanRepository
             .AnyAsync(l => l.BookId == bookId && l.UserId == userId && l.ReturnedAt != null, ct);
     }
 
+    public async Task<BookLoan?> GetMostRecentCompletedLoanAsync(Guid bookId, Guid userId, CancellationToken ct)
+    {
+        return await _context.BookLoans
+            .Where(l => l.BookId == bookId && l.UserId == userId && l.ReturnedAt != null)
+            .OrderByDescending(l => l.ReturnedAt)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task AddAsync(BookLoan loan, CancellationToken ct)
     {
         await _context.BookLoans.AddAsync(loan, ct);

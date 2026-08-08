@@ -6,6 +6,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- One-rating-per-loan-cycle: ratings are now tied to specific loans, form reappears after new loan cycle [MINI-74]
+- `GET /api/books/{bookId}/can-rate` endpoint — checks if user has an unrated completed loan [MINI-74]
+- `LoanId` (nullable FK) on Rating entity with EF Core migration [MINI-74]
+- `CheckInRatingDialog` — prompts "Rate Now" or "Maybe Later" after successful book return [MINI-74]
+- BookDetailPage uses `can-rate` API to conditionally show rating form (per loan cycle) [MINI-74]
 - Functional Ratings & Reviews page with "My Reviews" and "Recent Community Reviews" sections [MINI-72]
 - `GET /api/ratings/my` endpoint — current user's ratings across all books (paginated) [MINI-72]
 - `GET /api/ratings/recent` endpoint — recent community ratings feed (paginated) [MINI-72]
