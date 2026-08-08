@@ -1,203 +1,336 @@
 #!/bin/bash
 set -e
 
-# Load environment variables from .env if present
-if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
+# =============================================================================
+# MiniLibrary Seed Data Script
+# Populates the database with sample data via API calls.
+# Works against both local (docker-compose) and Azure deployments.
+#
+# Usage:
+#   LOCAL:  ./scripts/seed-data.sh
+#   AZURE:  API_BASE_URL=https://minilibrary-api.icymoss-654fea4b.centralus.azurecontainerapps.io ./scripts/seed-data.sh
+# =============================================================================
+
+API_BASE_URL="${API_BASE_URL:-http://localhost:5000}"
+
+echo "╔══════════════════════════════════════════════╗"
+echo "║  MiniLibrary - Seed Data                    ║"
+echo "╠══════════════════════════════════════════════╣"
+echo "║  API: $API_BASE_URL"
+echo "╚══════════════════════════════════════════════╝"
+echo ""
+
+# Check API is reachable
+echo "🔍 Checking API health..."
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$API_BASE_URL/health" 2>/dev/null || echo "000")
+if [ "$HTTP_CODE" != "200" ]; then
+    echo "❌ API not reachable at $API_BASE_URL/health (HTTP $HTTP_CODE)"
+    echo "   Make sure the API is running."
+    exit 1
 fi
+echo "✅ API is healthy"
+echo ""
 
-SA_PASSWORD="${SA_PASSWORD:-YourStrong!Passw0rd}"
-DB_CONTAINER="${DB_CONTAINER:-minilibrary-db}"
-DB_NAME="${DB_NAME:-MiniLibraryDb}"
+# =============================================================================
+# Helper functions
+# =============================================================================
 
-echo "Seeding MiniLibrary database with sample data..."
-echo "Container: $DB_CONTAINER | Database: $DB_NAME"
+get_token() {
+    local role=$1
+    local name=$2
+    local email=$3
+    curl -s -X POST "$API_BASE_URL/api/auth/dev-token" \
+        -H "Content-Type: application/json" \
+        -d "{\"role\":\"$role\",\"name\":\"$name\",\"email\":\"$email\"}"
+}
 
-# Wait for SQL Server to be ready
-echo "Waiting for SQL Server to be ready..."
-for i in $(seq 1 30); do
-    if docker exec "$DB_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
-        -S localhost -U sa -P "$SA_PASSWORD" -C -Q "SELECT 1" > /dev/null 2>&1; then
-        echo "SQL Server is ready."
-        break
-    fi
-    echo "  Attempt $i/30 - waiting..."
-    sleep 2
-done
+create_book() {
+    local token=$1
+    local title=$2
+    local author=$3
+    local isbn=$4
+    local year=$5
+    local desc=$6
+    local category=$7
+    
+    curl -s -X POST "$API_BASE_URL/api/books" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "{\"title\":\"$title\",\"author\":\"$author\",\"isbn\":\"$isbn\",\"publishedYear\":$year,\"description\":\"$desc\",\"category\":\"$category\"}"
+}
 
-# Create database if it doesn't exist
-docker exec -i "$DB_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
-    -S localhost -U sa -P "$SA_PASSWORD" -C -Q \
-    "IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'$DB_NAME') CREATE DATABASE [$DB_NAME];"
+checkout_book() {
+    local token=$1
+    local book_id=$2
+    
+    curl -s -X POST "$API_BASE_URL/api/loans/checkout" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "{\"bookId\":\"$book_id\"}"
+}
 
-echo "Inserting seed data..."
+checkin_book() {
+    local token=$1
+    local book_id=$2
+    
+    curl -s -X POST "$API_BASE_URL/api/loans/checkin" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "{\"bookId\":\"$book_id\"}"
+}
 
-docker exec -i "$DB_CONTAINER" /opt/mssql-tools18/bin/sqlcmd \
-    -S localhost -U sa -P "$SA_PASSWORD" -C -d "$DB_NAME" << 'EOF'
--- =============================================================================
--- MiniLibrary Seed Data
--- Idempotent: safe to run multiple times
--- =============================================================================
+rate_book() {
+    local token=$1
+    local book_id=$2
+    local score=$3
+    local review=$4
+    
+    curl -s -X POST "$API_BASE_URL/api/books/$book_id/ratings" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $token" \
+        -d "{\"score\":$score,\"reviewText\":\"$review\"}"
+}
 
-SET NOCOUNT ON;
+# =============================================================================
+# 1. Create Users (via dev-token — auto-creates users)
+# =============================================================================
 
--- ---------------------------------------------------------------------------
--- Users (Admin, Librarian, Members)
--- ---------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM Users WHERE Email = 'admin@minilibrary.com')
-BEGIN
-    INSERT INTO Users (Id, Email, FullName, ExternalId, Provider, Role, IsDeleted, EmailAlertsExpiration, EmailAlertsAvailability, CreatedAt, UpdatedAt)
-    VALUES
-        ('10000000-0000-0000-0000-000000000001', 'admin@minilibrary.com', 'System Administrator', 'admin-external-001', 'Google', 'Admin', 0, 1, 1, GETUTCDATE(), GETUTCDATE()),
-        ('10000000-0000-0000-0000-000000000002', 'librarian@minilibrary.com', 'Maria Garcia', 'librarian-external-001', 'Google', 'Librarian', 0, 1, 1, GETUTCDATE(), GETUTCDATE()),
-        ('10000000-0000-0000-0000-000000000003', 'carlos@example.com', 'Carlos Rodriguez', 'member-external-001', 'Microsoft', 'Member', 0, 1, 1, GETUTCDATE(), GETUTCDATE()),
-        ('10000000-0000-0000-0000-000000000004', 'ana@example.com', 'Ana Martinez', 'member-external-002', 'Google', 'Member', 0, 1, 1, GETUTCDATE(), GETUTCDATE()),
-        ('10000000-0000-0000-0000-000000000005', 'luis@example.com', 'Luis Fernandez', 'member-external-003', 'Microsoft', 'Member', 0, 1, 0, GETUTCDATE(), GETUTCDATE());
+echo "👤 Creating users..."
 
-    PRINT 'Users seeded successfully.';
-END
-ELSE
-    PRINT 'Users already exist, skipping.';
+ADMIN_RESPONSE=$(get_token "Admin" "Ana Martinez" "ana.martinez@minilibrary.demo")
+ADMIN_TOKEN=$(echo "$ADMIN_RESPONSE" | jq -r '.accessToken')
 
--- ---------------------------------------------------------------------------
--- Books (varied categories)
--- ---------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM Books WHERE ISBN = '9780132350884')
-BEGIN
-    INSERT INTO Books (Id, Title, Author, ISBN, PublishedYear, Description, Category, Status, AverageRating, TotalRatings, IsDeleted, CreatedAt, UpdatedAt)
-    VALUES
-        -- Technology
-        ('20000000-0000-0000-0000-000000000001', 'Clean Code', 'Robert C. Martin', '9780132350884', 2008,
-         'A Handbook of Agile Software Craftsmanship. Even bad code can function. But if code isnt clean, it can bring a development organization to its knees.',
-         'Technology', 'Available', 4.5, 12, 0, GETUTCDATE(), GETUTCDATE()),
+LIBRARIAN_RESPONSE=$(get_token "Librarian" "Carlos Lopez" "carlos.lopez@minilibrary.demo")
+LIBRARIAN_TOKEN=$(echo "$LIBRARIAN_RESPONSE" | jq -r '.accessToken')
 
-        ('20000000-0000-0000-0000-000000000002', 'The Pragmatic Programmer', 'David Thomas, Andrew Hunt', '9780135957059', 2019,
-         'Your journey to mastery. Straight from the trenches, The Pragmatic Programmer cuts through the increasing specialization and technicalities of modern software.',
-         'Technology', 'Available', 4.7, 8, 0, GETUTCDATE(), GETUTCDATE()),
+MEMBER1_RESPONSE=$(get_token "Member" "Maria Garcia" "maria.garcia@minilibrary.demo")
+MEMBER1_TOKEN=$(echo "$MEMBER1_RESPONSE" | jq -r '.accessToken')
+MEMBER1_ID=$(echo "$MEMBER1_RESPONSE" | jq -r '.user.id')
 
-        ('20000000-0000-0000-0000-000000000003', 'Design Patterns', 'Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides', '9780201633610', 1994,
-         'Elements of Reusable Object-Oriented Software. Capturing a wealth of experience about the design of object-oriented software.',
-         'Technology', 'Available', 4.3, 15, 0, GETUTCDATE(), GETUTCDATE()),
+MEMBER2_RESPONSE=$(get_token "Member" "Pedro Sanchez" "pedro.sanchez@minilibrary.demo")
+MEMBER2_TOKEN=$(echo "$MEMBER2_RESPONSE" | jq -r '.accessToken')
+MEMBER2_ID=$(echo "$MEMBER2_RESPONSE" | jq -r '.user.id')
 
-        ('20000000-0000-0000-0000-000000000004', 'Refactoring', 'Martin Fowler', '9780134757599', 2018,
-         'Improving the Design of Existing Code. For more than twenty years, experienced programmers worldwide have relied on this book.',
-         'Technology', 'CheckedOut', 4.6, 6, 0, GETUTCDATE(), GETUTCDATE()),
+MEMBER3_RESPONSE=$(get_token "Member" "Laura Fernandez" "laura.fernandez@minilibrary.demo")
+MEMBER3_TOKEN=$(echo "$MEMBER3_RESPONSE" | jq -r '.accessToken')
+MEMBER3_ID=$(echo "$MEMBER3_RESPONSE" | jq -r '.user.id')
 
-        -- Fiction
-        ('20000000-0000-0000-0000-000000000005', 'One Hundred Years of Solitude', 'Gabriel Garcia Marquez', '9780060883287', 1967,
-         'The brilliant, bestselling, landmark novel that tells the story of the Buendia family and mirrors the history of Latin America.',
-         'Fiction', 'Available', 4.8, 20, 0, GETUTCDATE(), GETUTCDATE()),
+MEMBER4_RESPONSE=$(get_token "Member" "Diego Torres" "diego.torres@minilibrary.demo")
+MEMBER4_TOKEN=$(echo "$MEMBER4_RESPONSE" | jq -r '.accessToken')
+MEMBER4_ID=$(echo "$MEMBER4_RESPONSE" | jq -r '.user.id')
 
-        ('20000000-0000-0000-0000-000000000006', 'Don Quixote', 'Miguel de Cervantes', '9780060934347', 1605,
-         'The classic tale of the knight-errant who sets out to right wrongs and bring justice to the world.',
-         'Fiction', 'Available', 4.4, 10, 0, GETUTCDATE(), GETUTCDATE()),
+if [ "$ADMIN_TOKEN" == "null" ] || [ -z "$ADMIN_TOKEN" ]; then
+    echo "❌ Failed to create users. Dev tokens might be disabled."
+    echo "   Response: $ADMIN_RESPONSE"
+    exit 1
+fi
+echo "✅ 6 users created (1 Admin, 1 Librarian, 4 Members)"
 
-        ('20000000-0000-0000-0000-000000000007', 'The House of the Spirits', 'Isabel Allende', '9780553383805', 1982,
-         'The story of the Trueba family spanning four generations, weaving reality with the supernatural.',
-         'Fiction', 'CheckedOut', 4.2, 7, 0, GETUTCDATE(), GETUTCDATE()),
+# =============================================================================
+# 2. Create Books (25 books across categories)
+# =============================================================================
 
-        -- Science
-        ('20000000-0000-0000-0000-000000000008', 'A Brief History of Time', 'Stephen Hawking', '9780553380163', 1988,
-         'From the Big Bang to Black Holes. A landmark volume in science writing for the layperson.',
-         'Science', 'Available', 4.6, 18, 0, GETUTCDATE(), GETUTCDATE()),
+echo "📚 Creating books..."
 
-        ('20000000-0000-0000-0000-000000000009', 'Cosmos', 'Carl Sagan', '9780345539434', 1980,
-         'Cosmos retraces the fourteen billion years of cosmic evolution that have transformed matter into consciousness.',
-         'Science', 'Available', 4.9, 22, 0, GETUTCDATE(), GETUTCDATE()),
+# Fiction
+B1=$(create_book "$LIBRARIAN_TOKEN" "Cien Anos de Soledad" "Gabriel Garcia Marquez" "9780307474728" 1967 "The epic tale of the Buendia family in the mythical town of Macondo. A masterpiece of magical realism." "Fiction")
+B1_ID=$(echo "$B1" | jq -r '.id')
 
-        -- History
-        ('20000000-0000-0000-0000-000000000010', 'Sapiens: A Brief History of Humankind', 'Yuval Noah Harari', '9780062316097', 2011,
-         'A groundbreaking narrative of humanitys creation and evolution that explores how we came to believe in gods, nations, and human rights.',
-         'History', 'Available', 4.5, 25, 0, GETUTCDATE(), GETUTCDATE());
+B2=$(create_book "$LIBRARIAN_TOKEN" "Don Quijote de la Mancha" "Miguel de Cervantes" "9788420412146" 1605 "The adventures of a nobleman who loses his sanity and decides to become a knight-errant." "Fiction")
+B2_ID=$(echo "$B2" | jq -r '.id')
 
-    PRINT 'Books seeded successfully.';
-END
-ELSE
-    PRINT 'Books already exist, skipping.';
+B3=$(create_book "$LIBRARIAN_TOKEN" "El Amor en los Tiempos del Colera" "Gabriel Garcia Marquez" "9780307389732" 1985 "A love story that spans over fifty years, exploring the nature of love and aging." "Fiction")
+B3_ID=$(echo "$B3" | jq -r '.id')
 
--- ---------------------------------------------------------------------------
--- Book Loans (sample active and returned loans)
--- ---------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM BookLoans WHERE BookId = '20000000-0000-0000-0000-000000000004')
-BEGIN
-    INSERT INTO BookLoans (Id, BookId, UserId, BorrowedAt, DueDate, ReturnedAt)
-    VALUES
-        -- Active loans (matching CheckedOut book statuses)
-        ('30000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003',
-         DATEADD(DAY, -7, GETUTCDATE()), DATEADD(DAY, 7, GETUTCDATE()), NULL),
+B4=$(create_book "$LIBRARIAN_TOKEN" "La Sombra del Viento" "Carlos Ruiz Zafon" "9780143034902" 2001 "A young boy discovers a mysterious book that leads him into a labyrinth of secrets in post-war Barcelona." "Fiction")
+B4_ID=$(echo "$B4" | jq -r '.id')
 
-        ('30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000004',
-         DATEADD(DAY, -10, GETUTCDATE()), DATEADD(DAY, 4, GETUTCDATE()), NULL),
+B5=$(create_book "$LIBRARIAN_TOKEN" "Rayuela" "Julio Cortazar" "9788437604572" 1963 "An experimental novel that can be read in multiple orders, following Horacio Oliveira in Paris and Buenos Aires." "Fiction")
+B5_ID=$(echo "$B5" | jq -r '.id')
 
-        -- Returned loans (history)
-        ('30000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000003',
-         DATEADD(DAY, -30, GETUTCDATE()), DATEADD(DAY, -16, GETUTCDATE()), DATEADD(DAY, -18, GETUTCDATE())),
+# Science Fiction
+B6=$(create_book "$LIBRARIAN_TOKEN" "Dune" "Frank Herbert" "9780441013593" 1965 "A science fiction epic set on the desert planet Arrakis. Politics, religion, and ecology intertwine." "Science Fiction")
+B6_ID=$(echo "$B6" | jq -r '.id')
 
-        ('30000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000004',
-         DATEADD(DAY, -45, GETUTCDATE()), DATEADD(DAY, -31, GETUTCDATE()), DATEADD(DAY, -33, GETUTCDATE())),
+B7=$(create_book "$LIBRARIAN_TOKEN" "Foundation" "Isaac Asimov" "9780553293357" 1951 "The story of a group of scientists who seek to preserve knowledge as civilization crumbles." "Science Fiction")
+B7_ID=$(echo "$B7" | jq -r '.id')
 
-        ('30000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000005',
-         DATEADD(DAY, -60, GETUTCDATE()), DATEADD(DAY, -46, GETUTCDATE()), DATEADD(DAY, -50, GETUTCDATE())),
+B8=$(create_book "$LIBRARIAN_TOKEN" "Neuromancer" "William Gibson" "9780441569595" 1984 "A washed-up computer hacker is hired for one last job in a dystopian future of cyberspace." "Science Fiction")
+B8_ID=$(echo "$B8" | jq -r '.id')
 
-        ('30000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000003',
-         DATEADD(DAY, -20, GETUTCDATE()), DATEADD(DAY, -6, GETUTCDATE()), DATEADD(DAY, -8, GETUTCDATE()));
+B9=$(create_book "$LIBRARIAN_TOKEN" "The Left Hand of Darkness" "Ursula K. Le Guin" "9780441478125" 1969 "An envoy from Earth visits a planet where inhabitants can change their gender." "Science Fiction")
+B9_ID=$(echo "$B9" | jq -r '.id')
 
-    PRINT 'Book loans seeded successfully.';
-END
-ELSE
-    PRINT 'Book loans already exist, skipping.';
+# Technology
+B10=$(create_book "$LIBRARIAN_TOKEN" "Clean Code" "Robert C. Martin" "9780132350884" 2008 "A handbook of agile software craftsmanship with principles for writing clean, maintainable code." "Technology")
+B10_ID=$(echo "$B10" | jq -r '.id')
 
--- ---------------------------------------------------------------------------
--- Ratings (sample reviews)
--- ---------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM Ratings WHERE UserId = '10000000-0000-0000-0000-000000000003' AND BookId = '20000000-0000-0000-0000-000000000001')
-BEGIN
-    INSERT INTO Ratings (Id, BookId, UserId, Score, ReviewText, UsefulVotes, CreatedAt, UpdatedAt)
-    VALUES
-        ('40000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000003',
-         5, 'Essential reading for any developer. Changed how I write code.', 3, GETUTCDATE(), GETUTCDATE()),
+B11=$(create_book "$LIBRARIAN_TOKEN" "Design Patterns" "Gang of Four" "9780201633610" 1994 "Elements of reusable object-oriented software. The definitive guide to design patterns." "Technology")
+B11_ID=$(echo "$B11" | jq -r '.id')
 
-        ('40000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000004',
-         5, 'A masterpiece of magical realism. Unforgettable characters and storytelling.', 5, GETUTCDATE(), GETUTCDATE()),
+B12=$(create_book "$LIBRARIAN_TOKEN" "The Pragmatic Programmer" "David Thomas and Andrew Hunt" "9780135957059" 2019 "A guide to becoming a better programmer, from journeyman to master craftsman." "Technology")
+B12_ID=$(echo "$B12" | jq -r '.id')
 
-        ('40000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000005',
-         4, 'Complex topics made accessible. A great introduction to cosmology.', 2, GETUTCDATE(), GETUTCDATE()),
+B13=$(create_book "$LIBRARIAN_TOKEN" "Domain-Driven Design" "Eric Evans" "9780321125217" 2003 "Tackling complexity in the heart of software through domain modeling." "Technology")
+B13_ID=$(echo "$B13" | jq -r '.id')
 
-        ('40000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000003',
-         5, 'Sagan makes the universe feel like home. Poetic and scientific in equal measure.', 4, GETUTCDATE(), GETUTCDATE());
+B14=$(create_book "$LIBRARIAN_TOKEN" "Building Microservices" "Sam Newman" "9781492034025" 2021 "Designing fine-grained systems for the modern distributed architecture." "Technology")
+B14_ID=$(echo "$B14" | jq -r '.id')
 
-    PRINT 'Ratings seeded successfully.';
-END
-ELSE
-    PRINT 'Ratings already exist, skipping.';
+# History
+B15=$(create_book "$LIBRARIAN_TOKEN" "Sapiens" "Yuval Noah Harari" "9780062316097" 2014 "A brief history of humankind from the Stone Age to the present." "History")
+B15_ID=$(echo "$B15" | jq -r '.id')
 
--- ---------------------------------------------------------------------------
--- Badges (sample achievements)
--- ---------------------------------------------------------------------------
-IF NOT EXISTS (SELECT 1 FROM Badges WHERE UserId = '10000000-0000-0000-0000-000000000003')
-BEGIN
-    INSERT INTO Badges (Id, UserId, BadgeType, EarnedAt)
-    VALUES
-        ('50000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000003', 'PrimerPrestamo', DATEADD(DAY, -30, GETUTCDATE())),
-        ('50000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000004', 'PrimerPrestamo', DATEADD(DAY, -45, GETUTCDATE())),
-        ('50000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000005', 'PrimerPrestamo', DATEADD(DAY, -60, GETUTCDATE())),
-        ('50000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000003', 'CriticoLiterario', DATEADD(DAY, -10, GETUTCDATE()));
+B16=$(create_book "$LIBRARIAN_TOKEN" "Guns, Germs, and Steel" "Jared Diamond" "9780393354324" 1997 "Why some societies dominate others: the fates of human societies explained." "History")
+B16_ID=$(echo "$B16" | jq -r '.id')
 
-    PRINT 'Badges seeded successfully.';
-END
-ELSE
-    PRINT 'Badges already exist, skipping.';
+B17=$(create_book "$LIBRARIAN_TOKEN" "A Short History of Nearly Everything" "Bill Bryson" "9780767908184" 2003 "An accessible exploration of science and the history of discovery." "History")
+B17_ID=$(echo "$B17" | jq -r '.id')
 
-PRINT '';
-PRINT '=== MiniLibrary seed data complete! ===';
-PRINT '';
-GO
-EOF
+# Philosophy
+B18=$(create_book "$LIBRARIAN_TOKEN" "Meditations" "Marcus Aurelius" "9780140449334" 180 "The personal writings of the Roman Emperor on Stoic philosophy." "Philosophy")
+B18_ID=$(echo "$B18" | jq -r '.id')
+
+B19=$(create_book "$LIBRARIAN_TOKEN" "The Republic" "Plato" "9780140455113" 1450 "A Socratic dialogue concerning justice, the ideal state, and the philosopher king." "Philosophy")
+B19_ID=$(echo "$B19" | jq -r '.id')
+
+# Business
+B20=$(create_book "$LIBRARIAN_TOKEN" "The Lean Startup" "Eric Ries" "9780307887894" 2011 "How constant innovation creates radically successful businesses." "Business")
+B20_ID=$(echo "$B20" | jq -r '.id')
+
+B21=$(create_book "$LIBRARIAN_TOKEN" "Zero to One" "Peter Thiel" "9780804139298" 2014 "Notes on startups, or how to build the future through creating something new." "Business")
+B21_ID=$(echo "$B21" | jq -r '.id')
+
+# Science
+B22=$(create_book "$LIBRARIAN_TOKEN" "A Brief History of Time" "Stephen Hawking" "9780553380163" 1988 "From the Big Bang to black holes: an exploration of the universe for non-scientists." "Science")
+B22_ID=$(echo "$B22" | jq -r '.id')
+
+B23=$(create_book "$LIBRARIAN_TOKEN" "The Selfish Gene" "Richard Dawkins" "9780198788607" 1976 "A gene-centered view of evolution that revolutionized biology." "Science")
+B23_ID=$(echo "$B23" | jq -r '.id')
+
+# Poetry
+B24=$(create_book "$LIBRARIAN_TOKEN" "Veinte Poemas de Amor" "Pablo Neruda" "9788497593601" 1924 "Twenty love poems and a song of despair. A classic of Latin American poetry." "Poetry")
+B24_ID=$(echo "$B24" | jq -r '.id')
+
+B25=$(create_book "$LIBRARIAN_TOKEN" "Leaves of Grass" "Walt Whitman" "9780486456768" 1855 "A poetry collection celebrating the human body, nature, and democracy." "Poetry")
+B25_ID=$(echo "$B25" | jq -r '.id')
+
+# Count successes
+BOOK_COUNT=$(echo "$B1 $B2 $B3 $B4 $B5 $B6 $B7 $B8 $B9 $B10 $B11 $B12 $B13 $B14 $B15 $B16 $B17 $B18 $B19 $B20 $B21 $B22 $B23 $B24 $B25" | grep -o '"id"' | wc -l)
+echo "✅ $BOOK_COUNT books created across 8 categories"
+
+# =============================================================================
+# 3. Create Loans (check-out and return books to build history)
+# =============================================================================
+
+echo "📖 Creating loan history..."
+
+# Member 1 (Maria) - borrows and returns several books
+checkout_book "$MEMBER1_TOKEN" "$B1_ID" > /dev/null 2>&1
+checkin_book "$MEMBER1_TOKEN" "$B1_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER1_TOKEN" "$B3_ID" > /dev/null 2>&1
+checkin_book "$MEMBER1_TOKEN" "$B3_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER1_TOKEN" "$B10_ID" > /dev/null 2>&1
+checkin_book "$MEMBER1_TOKEN" "$B10_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER1_TOKEN" "$B15_ID" > /dev/null 2>&1
+checkin_book "$MEMBER1_TOKEN" "$B15_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER1_TOKEN" "$B6_ID" > /dev/null 2>&1
+checkin_book "$MEMBER1_TOKEN" "$B6_ID" > /dev/null 2>&1
+
+# Member 2 (Pedro) - borrows and returns
+checkout_book "$MEMBER2_TOKEN" "$B6_ID" > /dev/null 2>&1
+checkin_book "$MEMBER2_TOKEN" "$B6_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER2_TOKEN" "$B7_ID" > /dev/null 2>&1
+checkin_book "$MEMBER2_TOKEN" "$B7_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER2_TOKEN" "$B8_ID" > /dev/null 2>&1
+checkin_book "$MEMBER2_TOKEN" "$B8_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER2_TOKEN" "$B10_ID" > /dev/null 2>&1
+checkin_book "$MEMBER2_TOKEN" "$B10_ID" > /dev/null 2>&1
+
+# Member 3 (Laura) - borrows and returns
+checkout_book "$MEMBER3_TOKEN" "$B1_ID" > /dev/null 2>&1
+checkin_book "$MEMBER3_TOKEN" "$B1_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER3_TOKEN" "$B4_ID" > /dev/null 2>&1
+checkin_book "$MEMBER3_TOKEN" "$B4_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER3_TOKEN" "$B5_ID" > /dev/null 2>&1
+checkin_book "$MEMBER3_TOKEN" "$B5_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER3_TOKEN" "$B15_ID" > /dev/null 2>&1
+checkin_book "$MEMBER3_TOKEN" "$B15_ID" > /dev/null 2>&1
+
+# Member 4 (Diego) - some active loans (not returned)
+checkout_book "$MEMBER4_TOKEN" "$B12_ID" > /dev/null 2>&1
+checkin_book "$MEMBER4_TOKEN" "$B12_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER4_TOKEN" "$B22_ID" > /dev/null 2>&1
+checkin_book "$MEMBER4_TOKEN" "$B22_ID" > /dev/null 2>&1
+
+checkout_book "$MEMBER4_TOKEN" "$B20_ID" > /dev/null 2>&1
+checkin_book "$MEMBER4_TOKEN" "$B20_ID" > /dev/null 2>&1
+
+# Active loans (currently checked out)
+checkout_book "$MEMBER1_TOKEN" "$B22_ID" > /dev/null 2>&1
+checkout_book "$MEMBER2_TOKEN" "$B13_ID" > /dev/null 2>&1
+checkout_book "$MEMBER4_TOKEN" "$B6_ID" > /dev/null 2>&1
+
+echo "✅ Loan history created (16 returned + 3 active loans)"
+
+# =============================================================================
+# 4. Create Ratings and Reviews
+# =============================================================================
+
+echo "⭐ Creating ratings and reviews..."
+
+# Maria's ratings
+rate_book "$MEMBER1_TOKEN" "$B1_ID" 5 "An absolute masterpiece. Garcia Marquez weaves a world that feels both fantastical and deeply real." > /dev/null 2>&1
+rate_book "$MEMBER1_TOKEN" "$B3_ID" 4 "Beautiful prose and a touching love story that spans decades." > /dev/null 2>&1
+rate_book "$MEMBER1_TOKEN" "$B10_ID" 5 "Essential reading for any developer. Changed how I think about code quality." > /dev/null 2>&1
+rate_book "$MEMBER1_TOKEN" "$B15_ID" 4 "Fascinating perspective on human history, though sometimes oversimplifies." > /dev/null 2>&1
+rate_book "$MEMBER1_TOKEN" "$B6_ID" 5 "Epic worldbuilding. Herbert created an entire universe that feels alive." > /dev/null 2>&1
+
+# Pedro's ratings
+rate_book "$MEMBER2_TOKEN" "$B6_ID" 5 "One of the greatest science fiction novels ever written. The politics are fascinating." > /dev/null 2>&1
+rate_book "$MEMBER2_TOKEN" "$B7_ID" 4 "Asimov at his best. The concept of psychohistory is brilliant." > /dev/null 2>&1
+rate_book "$MEMBER2_TOKEN" "$B8_ID" 4 "Groundbreaking cyberpunk. Gibson predicted so much of our digital world." > /dev/null 2>&1
+rate_book "$MEMBER2_TOKEN" "$B10_ID" 5 "Should be required reading in every CS program. Practical and insightful." > /dev/null 2>&1
+
+# Laura's ratings
+rate_book "$MEMBER3_TOKEN" "$B1_ID" 5 "I have read this three times and discover something new each time. Magical." > /dev/null 2>&1
+rate_book "$MEMBER3_TOKEN" "$B4_ID" 5 "Could not put it down. The atmosphere of Barcelona is captivating." > /dev/null 2>&1
+rate_book "$MEMBER3_TOKEN" "$B5_ID" 3 "Interesting experiment but the fragmented structure was frustrating at times." > /dev/null 2>&1
+rate_book "$MEMBER3_TOKEN" "$B15_ID" 5 "Changed my worldview. Harari makes complex ideas accessible and engaging." > /dev/null 2>&1
+
+# Diego's ratings
+rate_book "$MEMBER4_TOKEN" "$B12_ID" 5 "Practical wisdom for programmers at every level. The updated edition is excellent." > /dev/null 2>&1
+rate_book "$MEMBER4_TOKEN" "$B22_ID" 4 "Hawking makes complex physics understandable. A must-read for the curious mind." > /dev/null 2>&1
+rate_book "$MEMBER4_TOKEN" "$B20_ID" 4 "Great framework for thinking about innovation, though some examples feel dated now." > /dev/null 2>&1
+
+echo "✅ 16 ratings with reviews created"
+
+# =============================================================================
+# Done!
+# =============================================================================
 
 echo ""
-echo "Database seeded successfully!"
+echo "╔══════════════════════════════════════════════╗"
+echo "║  ✅ Seed Data Complete!                     ║"
+echo "╠══════════════════════════════════════════════╣"
+echo "║  Users:    6 (Admin, Librarian, 4 Members)  ║"
+echo "║  Books:    25 (8 categories)                ║"
+echo "║  Loans:    19 (16 returned, 3 active)       ║"
+echo "║  Ratings:  16 (with reviews)                ║"
+echo "╚══════════════════════════════════════════════╝"
 echo ""
-echo "Sample credentials (SSO-based, no passwords):"
-echo "  Admin:     admin@minilibrary.com"
-echo "  Librarian: librarian@minilibrary.com"
-echo "  Members:   carlos@example.com, ana@example.com, luis@example.com"
+echo "📝 You can now explore the API:"
+echo "   Swagger: $API_BASE_URL/swagger (if dev mode)"
+echo "   Search:  curl -H 'Authorization: Bearer <token>' $API_BASE_URL/api/search/books"
+echo "   Books:   curl -H 'Authorization: Bearer <token>' $API_BASE_URL/api/search/books?query=dune"
