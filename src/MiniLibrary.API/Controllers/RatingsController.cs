@@ -7,6 +7,7 @@ using MiniLibrary.Application.Ratings.Commands.CreateOrUpdateRating;
 using MiniLibrary.Application.Ratings.Commands.DeleteRating;
 using MiniLibrary.Application.Ratings.Commands.VoteReviewUseful;
 using MiniLibrary.Application.Ratings.DTOs;
+using MiniLibrary.Application.Ratings.Queries.CanRateBook;
 using MiniLibrary.Application.Ratings.Queries.GetBookRatings;
 
 namespace MiniLibrary.API.Controllers;
@@ -64,6 +65,30 @@ public class RatingsController : ControllerBase
                 hasPrevious = result.HasPrevious
             }
         });
+    }
+
+    /// <summary>
+    /// Checks if the current user can rate a specific book (has an unrated completed loan).
+    /// </summary>
+    /// <param name="bookId">Book identifier.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Object with canRate boolean and optional loanId.</returns>
+    /// <response code="200">Can-rate status returned.</response>
+    /// <response code="401">User is not authenticated.</response>
+    [HttpGet("books/{bookId:guid}/can-rate")]
+    [Authorize(Policy = AuthorizationConfig.Policies.MemberOnly)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> CanRateBook(Guid bookId, CancellationToken ct = default)
+    {
+        var userId = _currentUserService.UserId;
+        if (userId is null)
+            return Unauthorized();
+
+        var query = new CanRateBookQuery { BookId = bookId, UserId = userId.Value };
+        var result = await _mediator.Send(query, ct);
+
+        return Ok(new { canRate = result.CanRate, loanId = result.LoanId });
     }
 
     /// <summary>
