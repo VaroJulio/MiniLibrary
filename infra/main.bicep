@@ -29,6 +29,13 @@ param googleClientSecret string = ''
 @secure()
 param openAiApiKey string = ''
 
+@description('SMTP sender email address')
+param emailSenderEmail string = ''
+
+@description('SMTP App Password (Gmail)')
+@secure()
+param emailAppPassword string = ''
+
 @description('Container image for API')
 param apiImage string = 'ghcr.io/varojulio/minilibrary-api:latest'
 
@@ -145,6 +152,12 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
             { name: 'Authentication__Google__ClientId', value: googleClientId }
             { name: 'Authentication__Google__ClientSecret', value: googleClientSecret }
             { name: 'OpenAI__ApiKey', value: openAiApiKey }
+            { name: 'Email__SmtpHost', value: 'smtp.gmail.com' }
+            { name: 'Email__SmtpPort', value: '587' }
+            { name: 'Email__UseTls', value: 'true' }
+            { name: 'Email__SenderEmail', value: emailSenderEmail }
+            { name: 'Email__SenderName', value: 'MiniLibrary' }
+            { name: 'Email__AppPassword', value: emailAppPassword }
             { name: 'App__PublicUrl', value: 'https://${baseName}-api.${containerAppEnv.properties.defaultDomain}' }
             { name: 'App__FrontendUrl', value: 'https://${baseName}-web.azurestaticapps.net' }
           ]
