@@ -239,6 +239,9 @@ namespace MiniLibrary.Infrastructure.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("LoanId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("ReviewText")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -263,9 +266,16 @@ namespace MiniLibrary.Infrastructure.Data.Migrations
                     b.HasIndex("BookId")
                         .HasDatabaseName("IX_Ratings_BookId");
 
+                    b.HasIndex("LoanId")
+                        .HasDatabaseName("IX_Ratings_LoanId");
+
                     b.HasIndex("UserId", "BookId")
-                        .IsUnique()
                         .HasDatabaseName("IX_Ratings_UserId_BookId");
+
+                    b.HasIndex("UserId", "BookId", "LoanId")
+                        .IsUnique()
+                        .HasFilter("[LoanId] IS NOT NULL")
+                        .HasDatabaseName("IX_Ratings_UserId_BookId_LoanId");
 
                     b.ToTable("Ratings", (string)null);
                 });
@@ -448,6 +458,11 @@ namespace MiniLibrary.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("MiniLibrary.Domain.Entities.BookLoan", "Loan")
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("MiniLibrary.Domain.Entities.User", "User")
                         .WithMany("Ratings")
                         .HasForeignKey("UserId")
@@ -455,6 +470,8 @@ namespace MiniLibrary.Infrastructure.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Book");
+
+                    b.Navigation("Loan");
 
                     b.Navigation("User");
                 });

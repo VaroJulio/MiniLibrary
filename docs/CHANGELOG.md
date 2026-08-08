@@ -6,10 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- One-rating-per-loan-cycle: ratings are now tied to specific loans, form reappears after new loan cycle [MINI-74]
+- `GET /api/books/{bookId}/can-rate` endpoint — checks if user has an unrated completed loan [MINI-74]
+- `LoanId` (nullable FK) on Rating entity with EF Core migration [MINI-74]
+- `CheckInRatingDialog` — prompts "Rate Now" or "Maybe Later" after successful book return [MINI-74]
+- BookDetailPage uses `can-rate` API to conditionally show rating form (per loan cycle) [MINI-74]
+- Functional Ratings & Reviews page with "My Reviews" and "Recent Community Reviews" sections [MINI-72]
+- `GET /api/ratings/my` endpoint — current user's ratings across all books (paginated) [MINI-72]
+- `GET /api/ratings/recent` endpoint — recent community ratings feed (paginated) [MINI-72]
+- ReviewCard reusable component for rating display with vote/delete actions [MINI-72]
 - `POST /api/auth/dev-token` endpoint for development without OAuth (controlled by `Authentication:EnableDevTokens`) [MINI-58]
 - Auto-apply EF migrations on startup (`Database.Migrate()`, idempotent) [MINI-58]
 - `prompt=select_account` on Google/Microsoft OAuth (always shows account picker) [MINI-58]
 - `App:PublicUrl` and `App:FrontendUrl` configuration for OAuth redirect handling [MINI-58]
+- RatingForm rendered on BookDetailPage for authenticated users who have returned the book [MINI-70]
+- Separate ratings fetch on book detail page via `GET /api/books/{bookId}/ratings` [MINI-75]
 
 ### Fixed
 - OAuth redirect_uri mismatch in Docker (API now listens on port 5000 matching exposed port) [MINI-58]
@@ -18,6 +29,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - OAuth callback now redirects to frontend SPA instead of returning JSON [MINI-58]
 - Frontend LoginPage missing `/api` prefix in OAuth redirect URL [MINI-58]
 - Rankings API client: extract array from `{ data: [...] }` wrapper [MINI-58]
+- Dashboard loan-metrics 500 error: rewrite Include+GroupBy LINQ queries with Join [MINI-65]
+- Frontend checkin 422 error: send bookId instead of loanId in request body [MINI-66]
+- Wishlist page not displaying book title/author: property name mismatch with backend [MINI-69]
+- RatingForm visible while book is checked out: hide form when user has active loan [MINI-75]
 - Gamification API client: handle `{ earnedBadges, pendingBadges }` response structure [MINI-58]
 - Docker Compose API healthcheck port (5000 instead of 8080) [MINI-58]
 

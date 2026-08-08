@@ -19,7 +19,10 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
     private readonly IRatingRepository _ratingRepository;
     private readonly INotificationService _notificationService;
     private readonly IUserRepository _userRepository;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<EvaluateBadgesCommandHandler> _logger;
+
+    private const string LeaderboardCacheKey = "gamification:leaderboard";
 
     public EvaluateBadgesCommandHandler(
         IBadgeRepository badgeRepository,
@@ -27,6 +30,7 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
         IRatingRepository ratingRepository,
         INotificationService notificationService,
         IUserRepository userRepository,
+        ICacheService cacheService,
         ILogger<EvaluateBadgesCommandHandler> logger)
     {
         _badgeRepository = badgeRepository;
@@ -34,6 +38,7 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
         _ratingRepository = ratingRepository;
         _notificationService = notificationService;
         _userRepository = userRepository;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
@@ -125,22 +130,24 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
             _logger.LogInformation("Badge {BadgeType} awarded to user {UserId}.", badgeType, userId);
         }
 
+        // Invalidate leaderboard cache if any badges were awarded
+        if (badgesToAward.Count > 0)
+        {
+            await _cacheService.InvalidateAsync(LeaderboardCacheKey, cancellationToken);
+        }
+
         return Unit.Value;
     }
 
     private async Task<bool> CheckRatingCountAsync(Guid userId, int minCount, CancellationToken ct)
     {
-        // Use a simple approach: check via the repository
-        var paging = new Domain.Common.PaginationParams(1, 1);
-        // We'll check if user has at least minCount ratings by checking loan history books that have ratings
-        // For a proper implementation, we'd add a GetUserRatingCountAsync to IRatingRepository
-        // For now, approximate: if user has enough completed loans, they likely have ratings
-        return await Task.FromResult(false); // Conservative: rely on RatingCreatedEvent trigger
+        var count = await _ratingRepository.GetUserRatingCountAsync(userId, ct);
+        return count >= minCount;
     }
 
-    private Task<bool> CheckUsefulReviewsAsync(Guid userId, int minCount, CancellationToken ct)
+    private async Task<bool> CheckUsefulReviewsAsync(Guid userId, int minCount, CancellationToken ct)
     {
-        // Placeholder: would need a query for ratings by user with UsefulVotes > 0
-        return Task.FromResult(false); // Conservative
+        var count = await _ratingRepository.GetUserUsefulReviewCountAsync(userId, 1, ct);
+        return count >= minCount;
     }
 }

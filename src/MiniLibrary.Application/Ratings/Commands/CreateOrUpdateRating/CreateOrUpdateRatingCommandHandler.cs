@@ -8,8 +8,9 @@ namespace MiniLibrary.Application.Ratings.Commands.CreateOrUpdateRating;
 
 /// <summary>
 /// Handles CreateOrUpdateRatingCommand:
-/// - Validates member has completed a loan for the book
-/// - Creates or updates the rating
+/// - Validates member has a completed loan for the book
+/// - Enforces one rating per loan cycle (tied to specific loan)
+/// - Creates a new rating or updates the existing one for that loan
 /// - Recalculates book's AverageRating and TotalRatings
 /// </summary>
 public sealed class CreateOrUpdateRatingCommandHandler
@@ -43,34 +44,34 @@ public sealed class CreateOrUpdateRatingCommandHandler
             throw new NotFoundException("Book", request.BookId);
         }
 
-        // Verify member has completed a loan for this book (Req 16.3)
-        var hasCompletedLoan = await _loanRepository.HasCompletedLoanAsync(
+        // Get the most recent completed loan for this user+book
+        var mostRecentLoan = await _loanRepository.GetMostRecentCompletedLoanAsync(
             request.BookId, request.UserId, cancellationToken);
-        if (!hasCompletedLoan)
+
+        if (mostRecentLoan is null)
         {
             throw new ForbiddenException("You must have completed a loan for this book before rating it.");
         }
 
-        // Check if rating already exists
-        var existing = await _ratingRepository.GetByUserAndBookAsync(
-            request.UserId, request.BookId, cancellationToken);
+        // Check if a rating already exists for this specific loan cycle
+        var existingForLoan = await _ratingRepository.GetByLoanIdAsync(mostRecentLoan.Id, cancellationToken);
 
         Rating rating;
-        if (existing is not null)
+        if (existingForLoan is not null)
         {
-            // Update existing rating
-            existing.Update(request.Score, request.ReviewText);
-            await _ratingRepository.UpdateAsync(existing, cancellationToken);
-            rating = existing;
+            // Update existing rating for this loan cycle
+            existingForLoan.Update(request.Score, request.ReviewText);
+            await _ratingRepository.UpdateAsync(existingForLoan, cancellationToken);
+            rating = existingForLoan;
         }
         else
         {
-            // Create new rating
-            rating = Rating.Create(request.BookId, request.UserId, request.Score, request.ReviewText);
+            // Create new rating tied to this loan cycle
+            rating = Rating.Create(request.BookId, request.UserId, request.Score, request.ReviewText, mostRecentLoan.Id);
             await _ratingRepository.AddAsync(rating, cancellationToken);
         }
 
-        // Recalculate book's average rating (Req 16.4)
+        // Recalculate book's average rating
         var (average, count) = await _ratingRepository.CalculateBookAverageAsync(
             request.BookId, cancellationToken);
         book.UpdateRatingStats(average, count);

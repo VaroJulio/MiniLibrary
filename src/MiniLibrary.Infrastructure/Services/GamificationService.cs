@@ -20,8 +20,12 @@ public sealed class GamificationService : IGamificationService
     public async Task<List<LeaderboardEntry>> GetLeaderboardAsync(CancellationToken ct)
     {
         var leaders = await _context.Badges
-            .Include(b => b.User)
-            .GroupBy(b => new { b.UserId, b.User.FullName })
+            .Join(
+                _context.Users.Where(u => !u.IsDeleted),
+                badge => badge.UserId,
+                user => user.Id,
+                (badge, user) => new { badge.UserId, user.FullName })
+            .GroupBy(x => new { x.UserId, x.FullName })
             .Select(g => new { g.Key.UserId, Name = g.Key.FullName, Count = g.Count() })
             .OrderByDescending(x => x.Count)
             .Take(10)

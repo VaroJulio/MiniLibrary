@@ -25,6 +25,12 @@ public sealed class RatingRepository : IRatingRepository
             .FirstOrDefaultAsync(r => r.UserId == userId && r.BookId == bookId, ct);
     }
 
+    public async Task<Rating?> GetByLoanIdAsync(Guid loanId, CancellationToken ct)
+    {
+        return await _context.Ratings
+            .FirstOrDefaultAsync(r => r.LoanId == loanId, ct);
+    }
+
     public async Task<Rating?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await _context.Ratings
@@ -69,6 +75,52 @@ public sealed class RatingRepository : IRatingRepository
 
         var average = await ratings.AverageAsync(r => (decimal)r.Score, ct);
         return (Math.Round(average, 1), count);
+    }
+
+    public async Task<int> GetUserRatingCountAsync(Guid userId, CancellationToken ct)
+    {
+        return await _context.Ratings.CountAsync(r => r.UserId == userId, ct);
+    }
+
+    public async Task<int> GetUserUsefulReviewCountAsync(Guid userId, int minVotes, CancellationToken ct)
+    {
+        return await _context.Ratings
+            .CountAsync(r => r.UserId == userId && r.UsefulVotes >= minVotes, ct);
+    }
+
+    public async Task<PagedResult<Rating>> GetUserRatingsAsync(Guid userId, PaginationParams paging, CancellationToken ct)
+    {
+        var query = _context.Ratings
+            .Where(r => r.UserId == userId)
+            .Include(r => r.Book)
+            .Include(r => r.User)
+            .OrderByDescending(r => r.UpdatedAt);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .Skip((paging.Page - 1) * paging.PageSize)
+            .Take(paging.PageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<Rating>(items, totalCount, paging.Page, paging.PageSize);
+    }
+
+    public async Task<PagedResult<Rating>> GetRecentRatingsAsync(PaginationParams paging, CancellationToken ct)
+    {
+        var query = _context.Ratings
+            .Include(r => r.User)
+            .Include(r => r.Book)
+            .OrderByDescending(r => r.CreatedAt);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .Skip((paging.Page - 1) * paging.PageSize)
+            .Take(paging.PageSize)
+            .ToListAsync(ct);
+
+        return new PagedResult<Rating>(items, totalCount, paging.Page, paging.PageSize);
     }
 
     public async Task AddAsync(Rating rating, CancellationToken ct)

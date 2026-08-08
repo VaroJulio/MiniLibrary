@@ -14,6 +14,7 @@ public interface ILoanRepository
     Task<PagedResult<BookLoan>> GetUserHistoryAsync(Guid userId, PaginationParams paging, CancellationToken ct);
     Task<PagedResult<BookLoan>> GetOverdueLoansAsync(PaginationParams paging, CancellationToken ct);
     Task<bool> HasCompletedLoanAsync(Guid bookId, Guid userId, CancellationToken ct);
+    Task<BookLoan?> GetMostRecentCompletedLoanAsync(Guid bookId, Guid userId, CancellationToken ct);
     Task AddAsync(BookLoan loan, CancellationToken ct);
     Task UpdateAsync(BookLoan loan, CancellationToken ct);
 }

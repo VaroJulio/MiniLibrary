@@ -1,17 +1,74 @@
 import { apiClient } from '@/services/apiClient';
-import type { Rating, PagedResponse } from '@/types/models';
+import type { PagedResponse } from '@/types/models';
 
 export interface CreateRatingRequest {
   score: number;
   reviewText?: string;
 }
 
+export interface MyRating {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  score: number;
+  reviewText: string;
+  usefulVotes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommunityRating {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  userId: string;
+  userName: string;
+  score: number;
+  reviewText: string;
+  usefulVotes: number;
+  createdAt: string;
+}
+
+export interface BookRating {
+  id: string;
+  bookId: string;
+  userId: string;
+  userName: string;
+  score: number;
+  reviewText: string;
+  usefulVotes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export async function fetchBookRatings(
   bookId: string,
   page: number,
   pageSize: number,
-): Promise<PagedResponse<Rating>> {
-  const { data } = await apiClient.get<PagedResponse<Rating>>(`/books/${bookId}/ratings`, {
+): Promise<PagedResponse<BookRating>> {
+  const { data } = await apiClient.get<PagedResponse<BookRating>>(`/books/${bookId}/ratings`, {
+    params: { page, pageSize },
+  });
+  return data;
+}
+
+export async function fetchMyRatings(
+  page: number,
+  pageSize: number,
+): Promise<PagedResponse<MyRating>> {
+  const { data } = await apiClient.get<PagedResponse<MyRating>>('/ratings/my', {
+    params: { page, pageSize },
+  });
+  return data;
+}
+
+export async function fetchRecentRatings(
+  page: number,
+  pageSize: number,
+): Promise<PagedResponse<CommunityRating>> {
+  const { data } = await apiClient.get<PagedResponse<CommunityRating>>('/ratings/recent', {
     params: { page, pageSize },
   });
   return data;
@@ -30,4 +87,14 @@ export async function deleteRating(bookId: string): Promise<void> {
 
 export async function voteUseful(ratingId: string): Promise<void> {
   await apiClient.post(`/ratings/${ratingId}/useful`);
+}
+
+export interface CanRateResponse {
+  canRate: boolean;
+  loanId: string | null;
+}
+
+export async function fetchCanRate(bookId: string): Promise<CanRateResponse> {
+  const { data } = await apiClient.get<CanRateResponse>(`/books/${bookId}/can-rate`);
+  return data;
 }

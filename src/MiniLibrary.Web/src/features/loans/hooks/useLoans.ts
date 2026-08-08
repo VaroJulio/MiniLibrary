@@ -25,11 +25,26 @@ export function useCheckOut() {
 export function useCheckIn() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (loanId: string) => checkInBook(loanId),
+    mutationFn: (bookId: string) => checkInBook(bookId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [LOAN_HISTORY_KEY] });
       queryClient.invalidateQueries({ queryKey: ['books'] });
       queryClient.invalidateQueries({ queryKey: ['book-detail'] });
     },
   });
+}
+
+export function useHasReadBook(bookId: string | undefined) {
+  const { data } = useQuery({
+    queryKey: [LOAN_HISTORY_KEY, 1, 100],
+    queryFn: () => fetchLoanHistory(1, 100),
+  });
+
+  if (!bookId || !data) return false;
+
+  const hasReturnedLoan = data.data.some((loan) => loan.bookId === bookId && loan.returnedAt !== null);
+  const hasActiveLoan = data.data.some((loan) => loan.bookId === bookId && loan.returnedAt === null);
+
+  // Show rating form only if user has completed a loan AND doesn't currently have the book checked out
+  return hasReturnedLoan && !hasActiveLoan;
 }

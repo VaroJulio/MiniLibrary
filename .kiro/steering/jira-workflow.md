@@ -78,3 +78,18 @@ Steps:
 ## Language Convention
 
 All Jira issue summaries and descriptions must be written in **English**. This ensures consistency across the board and aligns with the codebase language.
+
+## Mandatory Issue Rule (CRITICAL)
+
+**NO code can be pushed to the repository without an associated Jira issue.** This is non-negotiable.
+
+Before creating a branch or making any commit:
+1. Search Jira for an existing issue that covers the work
+2. If none exists, CREATE a new issue (Bug, Task, or Story as appropriate)
+3. Transition it to "In Progress"
+4. Use the issue key in the branch name and commit messages
+5. Reference the issue in the PR description
+
+This applies to ALL changes: features, bugfixes, documentation, CI/CD, config changes — everything.
+
+**Violation**: If code was pushed without a Jira issue, retroactively create the issue and add a comment linking to the PR(s). This should never happen again.

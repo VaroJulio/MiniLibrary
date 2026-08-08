@@ -92,7 +92,7 @@ export default function LoanHistoryPage() {
                       </TableCell>
                       <TableCell align="right">
                         {!loan.returnedAt && (
-                          <CheckInButton loanId={loan.id} />
+                          <CheckInButton bookId={loan.bookId} bookTitle={loan.bookTitle} />
                         )}
                         {loan.returnedAt && (
                           <Typography variant="caption" color="text.disabled">

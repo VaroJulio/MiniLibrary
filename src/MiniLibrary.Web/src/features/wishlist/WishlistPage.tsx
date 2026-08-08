@@ -48,7 +48,7 @@ export default function WishlistPage() {
         <>
           <Stack spacing={1}>
             {data.data.map((entry) => (
-              <Card key={entry.id} sx={{ '&:hover': { boxShadow: 3 } }}>
+              <Card key={entry.bookId} sx={{ '&:hover': { boxShadow: 3 } }}>
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Box
@@ -56,10 +56,10 @@ export default function WishlistPage() {
                       onClick={() => navigate(`/books/${entry.bookId}`)}
                     >
                       <Typography variant="subtitle2" fontWeight={600}>
-                        {entry.bookTitle}
+                        {entry.title}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {entry.bookAuthor}
+                        {entry.author}
                       </Typography>
                     </Box>
                     <Stack direction="row" spacing={1} alignItems="center">
