@@ -33,6 +33,7 @@ public static class DependencyInjection
 
         // OpenAI Embedding Service
         services.Configure<OpenAiOptions>(configuration.GetSection(OpenAiOptions.SectionName));
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
         services.AddScoped<IEmbeddingService, OpenAiEmbeddingService>();
         services.AddScoped<IRecommendationService, OpenAiRecommendationService>();
         services.AddScoped<IDashboardService, DashboardService>();
