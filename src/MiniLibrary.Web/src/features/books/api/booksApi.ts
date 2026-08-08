@@ -8,7 +8,7 @@ export async function fetchBooks(
   filters?: BookFilters,
 ): Promise<PagedResponse<Book>> {
   const params: Record<string, string | number> = { page, pageSize };
-  if (filters?.query) params.query = filters.query;
+  if (filters?.query) params.q = filters.query;
   if (filters?.category) params.category = filters.category;
   if (filters?.status) params.status = filters.status;
   if (filters?.yearFrom) params.yearFrom = filters.yearFrom;
