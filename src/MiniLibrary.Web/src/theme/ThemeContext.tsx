@@ -33,10 +33,10 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
         palette: {
           mode,
           primary: {
-            main: '#1E3A5F',
-            light: '#4A6FA5',
-            dark: '#0F1F33',
-            contrastText: '#FFFFFF',
+            main: mode === 'light' ? '#1E3A5F' : '#90CAF9',
+            light: mode === 'light' ? '#4A6FA5' : '#BBDEFB',
+            dark: mode === 'light' ? '#0F1F33' : '#42A5F5',
+            contrastText: mode === 'light' ? '#FFFFFF' : '#0F172A',
           },
           secondary: {
             main: '#F59E0B',
@@ -49,16 +49,16 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
             paper: mode === 'light' ? '#FFFFFF' : '#1E293B',
           },
           success: {
-            main: '#10B981',
+            main: mode === 'light' ? '#10B981' : '#34D399',
           },
           warning: {
             main: '#F59E0B',
           },
           error: {
-            main: '#EF4444',
+            main: mode === 'light' ? '#EF4444' : '#F87171',
           },
           info: {
-            main: '#3B82F6',
+            main: mode === 'light' ? '#3B82F6' : '#60A5FA',
           },
         },
         typography: {
@@ -125,6 +125,20 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
             styleOverrides: {
               head: {
                 fontWeight: 600,
+              },
+              root: {
+                '&:last-child': {
+                  paddingRight: 16,
+                },
+              },
+            },
+          },
+          MuiTableRow: {
+            styleOverrides: {
+              root: {
+                '& .MuiButton-root + .MuiButton-root': {
+                  marginLeft: 8,
+                },
               },
             },
           },
