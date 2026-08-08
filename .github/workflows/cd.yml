@@ -9,6 +9,8 @@ env:
   REGISTRY: ghcr.io
   API_IMAGE: ghcr.io/varojulio/minilibrary-api
   WEB_IMAGE: ghcr.io/varojulio/minilibrary-web
+  CONTAINER_APP_NAME: minilibrary-api
+  RESOURCE_GROUP: minilibrary-demo
 
 jobs:
   build-and-push:
@@ -17,6 +19,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      sha_short: ${{ steps.meta.outputs.sha_short }}
+      version: ${{ steps.meta.outputs.version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -69,3 +74,56 @@ jobs:
             ${{ env.WEB_IMAGE }}:latest
             ${{ env.WEB_IMAGE }}:sha-${{ steps.meta.outputs.sha_short }}
             ${{ env.WEB_IMAGE }}:${{ steps.meta.outputs.version }}
+
+  deploy-api:
+    name: Deploy API to Azure
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Container Apps
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: ${{ env.CONTAINER_APP_NAME }}
+          imageToDeploy: ${{ env.API_IMAGE }}:sha-${{ needs.build-and-push.outputs.sha_short }}
+
+  deploy-web:
+    name: Deploy Frontend to Azure
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/MiniLibrary.Web/package-lock.json
+
+      - name: Install and build
+        working-directory: src/MiniLibrary.Web
+        env:
+          VITE_API_BASE_URL: ${{ vars.AZURE_API_URL || 'https://minilibrary-api.icymoss-654fea4b.centralus.azurecontainerapps.io' }}/api
+        run: |
+          npm ci
+          npm run build
+          cp staticwebapp.config.json dist/
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: src/MiniLibrary.Web/dist
+          skip_app_build: true

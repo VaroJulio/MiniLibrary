@@ -57,26 +57,6 @@ jobs:
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.CONTAINER_APP_NAME }}
           imageToDeploy: ${{ env.API_IMAGE }}:${{ github.sha }}
-          environmentVariables: >-
-            ASPNETCORE_ENVIRONMENT=Production
-            ASPNETCORE_URLS=http://+:5000
-            ConnectionStrings__DefaultConnection=secretref:sql-connection-string
-            Jwt__Secret=${{ secrets.JWT_SECRET }}
-            Jwt__Issuer=MiniLibrary
-            Jwt__Audience=MiniLibrary
-            Jwt__ExpirationMinutes=60
-            Authentication__EnableDevTokens=false
-            Authentication__Google__ClientId=${{ vars.GOOGLE_CLIENT_ID }}
-            Authentication__Google__ClientSecret=${{ secrets.GOOGLE_CLIENT_SECRET }}
-            OpenAI__ApiKey=${{ secrets.OPENAI_API_KEY }}
-            Email__SmtpHost=smtp.gmail.com
-            Email__SmtpPort=587
-            Email__UseTls=true
-            Email__SenderEmail=${{ vars.EMAIL_SENDER_EMAIL }}
-            Email__SenderName=MiniLibrary
-            Email__AppPassword=${{ secrets.EMAIL_APP_PASSWORD }}
-            App__PublicUrl=${{ vars.AZURE_API_URL }}
-            App__FrontendUrl=${{ vars.AZURE_FRONTEND_URL }}
 
   build-and-deploy-web:
     if: ${{ inputs.deploy_web }}
