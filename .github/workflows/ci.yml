@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [develop, main]
   push:
-    branches: [develop]
+    branches: [develop, main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -61,12 +61,21 @@ jobs:
   frontend:
     name: Frontend (Build + Lint)
     runs-on: ubuntu-latest
-    if: hashFiles('src/MiniLibrary.Web/package-lock.json') != ''
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if frontend exists
+        id: check_frontend
+        run: |
+          if [ -f "src/MiniLibrary.Web/package-lock.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Setup Node.js
+        if: steps.check_frontend.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -74,17 +83,21 @@ jobs:
           cache-dependency-path: src/MiniLibrary.Web/package-lock.json
 
       - name: Install dependencies
+        if: steps.check_frontend.outputs.exists == 'true'
         working-directory: src/MiniLibrary.Web
         run: npm ci
 
       - name: TypeScript type check
+        if: steps.check_frontend.outputs.exists == 'true'
         working-directory: src/MiniLibrary.Web
         run: npx tsc --noEmit
 
       - name: Lint
+        if: steps.check_frontend.outputs.exists == 'true'
         working-directory: src/MiniLibrary.Web
         run: npm run lint
 
       - name: Build frontend
+        if: steps.check_frontend.outputs.exists == 'true'
         working-directory: src/MiniLibrary.Web
         run: npm run build
