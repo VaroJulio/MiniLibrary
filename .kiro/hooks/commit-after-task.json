@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Commit and Push After Task",
+      "trigger": "PostTaskExec",
+      "description": "Reminds the agent to commit and push changes after completing each spec task",
+      "action": {
+        "type": "agent",
+        "prompt": "You just completed a spec task. Follow the git commit workflow defined in the 'git-commit-workflow' steering file:\n\n1. Check `git status` to see what files were modified/added\n2. Stage ONLY the files relevant to this task (prefer specific files over `git add .`)\n3. Create a conventional commit with the Jira issue ID. Derive the issue ID from the current branch name (e.g., `feature/MINI-42-search-books` → MINI-42)\n4. Push to the current branch\n\nCommit message format: `type(scope): concise description [MINI-XX]`\n- type: feat, fix, docs, test, chore, refactor\n- scope: the module/feature area (e.g., books, auth, loans)\n- MINI-XX: Jira issue from branch name\n\nExample: `feat(books): implement search by title and author [MINI-42]`\n\nIf the build is broken (check recent hook output), do NOT commit — fix first.\nIf there are no changes to commit, skip silently."
+      }
+    }
+  ]
+}

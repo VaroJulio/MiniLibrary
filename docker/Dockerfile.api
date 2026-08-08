@@ -1,17 +1,37 @@
+# Stage 1: Build and publish
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY src/MiniLibrary.Domain/*.csproj MiniLibrary.Domain/
-COPY src/MiniLibrary.Application/*.csproj MiniLibrary.Application/
-COPY src/MiniLibrary.Infrastructure/*.csproj MiniLibrary.Infrastructure/
-COPY src/MiniLibrary.API/*.csproj MiniLibrary.API/
-RUN dotnet restore MiniLibrary.API/MiniLibrary.API.csproj
+# Copy project files for restore (layer caching)
+COPY MiniLibrary.sln ./
+COPY Directory.Build.props ./
+COPY src/MiniLibrary.Domain/MiniLibrary.Domain.csproj src/MiniLibrary.Domain/
+COPY src/MiniLibrary.Application/MiniLibrary.Application.csproj src/MiniLibrary.Application/
+COPY src/MiniLibrary.Infrastructure/MiniLibrary.Infrastructure.csproj src/MiniLibrary.Infrastructure/
+COPY src/MiniLibrary.API/MiniLibrary.API.csproj src/MiniLibrary.API/
 
-COPY src/ .
-RUN dotnet publish MiniLibrary.API/MiniLibrary.API.csproj -c Release -o /app/publish
+RUN dotnet restore src/MiniLibrary.API/MiniLibrary.API.csproj
 
+# Copy source and publish
+COPY src/ src/
+RUN dotnet publish src/MiniLibrary.API/MiniLibrary.API.csproj \
+    -c Release \
+    -o /app/publish
+
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
+
+# Install curl for healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user for security
+RUN adduser --disabled-password --gecos "" appuser
+USER appuser
+
 COPY --from=build /app/publish .
-EXPOSE 8080
+
+EXPOSE 5000
+ENV ASPNETCORE_URLS=http://+:5000
+
 ENTRYPOINT ["dotnet", "MiniLibrary.API.dll"]

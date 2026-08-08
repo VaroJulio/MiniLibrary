@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniLibrary - Gestión de Usuarios</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #1E3A5F; color: white; padding: 24px 0; z-index: 100; }
+        .sidebar-logo { font-size: 1.25rem; font-weight: 700; padding: 0 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
+        .nav-section { padding: 0 12px; margin-bottom: 24px; }
+        .nav-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.75); text-decoration: none; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 500; }
+        .nav-item .material-icons-outlined { font-size: 1.25rem; }
+        .main { margin-left: 260px; padding: 32px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .header h1 { font-size: 1.5rem; font-weight: 700; color: #1E3A5F; }
+
+        /* Search and filters */
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 12px center no-repeat;
+        }
+        .search-input:focus { outline: none; border-color: #4A6FA5; }
+        .filter-select {
+            padding: 10px 32px 10px 12px;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            background: white;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            text-align: left;
+            padding: 14px 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #F8FAFC;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        td {
+            padding: 14px 20px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #F8FAFC; }
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+        .user-avatar.a1 { background: #6366F1; }
+        .user-avatar.a2 { background: #EC4899; }
+        .user-avatar.a3 { background: #F59E0B; }
+        .user-avatar.a4 { background: #10B981; }
+        .user-avatar.a5 { background: #8B5CF6; }
+        .user-name { font-weight: 500; }
+        .user-email { font-size: 0.75rem; color: #94A3B8; }
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .role-badge.admin { background: #F3E8FF; color: #7C3AED; }
+        .role-badge.librarian { background: #D1FAE5; color: #065F46; }
+        .role-badge.member { background: #DBEAFE; color: #1D4ED8; }
+        .status-dot {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+        .status-dot::before {
+            content: '';
+            width: 8px; height: 8px;
+            border-radius: 50%;
+        }
+        .status-dot.active::before { background: #10B981; }
+        .status-dot.inactive::before { background: #94A3B8; }
+        .action-btn {
+            padding: 6px;
+            border: none;
+            background: transparent;
+            color: #64748B;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .action-btn:hover { background: #F1F5F9; color: #1E293B; }
+
+        /* Pagination */
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #E2E8F0;
+            font-size: 0.8rem;
+            color: #64748B;
+        }
+        .page-nav { display: flex; gap: 4px; }
+        .page-nav button {
+            padding: 6px 10px;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .page-nav button.active { background: #1E3A5F; color: white; border-color: #1E3A5F; }
+
+        /* Mobile */
+        .mobile-header { display: none; position: fixed; top: 0; left: 0; right: 0; background: white; padding: 12px 16px; border-bottom: 1px solid #E2E8F0; z-index: 99; }
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; padding: 8px 0; z-index: 100; }
+        .bottom-nav-items { display: flex; justify-content: space-around; }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.65rem; color: #64748B; text-decoration: none; }
+        .bottom-nav-item.active { color: #1E3A5F; }
+        .bottom-nav-item .material-icons-outlined { font-size: 1.4rem; }
+
+        /* Mobile cards view */
+        .mobile-users { display: none; }
+        .mobile-user-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .mobile-user-info { flex: 1; }
+        .mobile-user-info .user-name { font-size: 0.9rem; }
+        .mobile-user-info .user-email { margin-top: 2px; }
+        .mobile-user-meta { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 72px 16px 80px; }
+            .mobile-header { display: flex; align-items: center; justify-content: space-between; }
+            .mobile-header h2 { font-size: 1.1rem; color: #1E3A5F; }
+            .bottom-nav { display: block; }
+            .header { display: none; }
+            .table-container { display: none; }
+            .mobile-users { display: block; }
+            .toolbar { flex-direction: column; }
+            .search-input { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-logo"><span>📚</span> MiniLibrary</div>
+        <div class="nav-section">
+            <div class="nav-label">Principal</div>
+            <a href="dashboard.html" class="nav-item"><span class="material-icons-outlined">dashboard</span> Dashboard</a>
+            <a href="catalog.html" class="nav-item"><span class="material-icons-outlined">library_books</span> Catálogo</a>
+            <a href="my-loans.html" class="nav-item"><span class="material-icons-outlined">swap_horiz</span> Préstamos</a>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Administración</div>
+            <a href="#" class="nav-item active"><span class="material-icons-outlined">people</span> Usuarios</a>
+            <a href="#" class="nav-item"><span class="material-icons-outlined">assessment</span> Reportes</a>
+        </div>
+    </nav>
+
+    <div class="mobile-header">
+        <h2>Usuarios</h2>
+        <span class="material-icons-outlined" style="color:#64748B">filter_list</span>
+    </div>
+
+    <main class="main">
+        <div class="header"><h1>Gestión de Usuarios</h1></div>
+
+        <div class="toolbar">
+            <input type="text" class="search-input" placeholder="Buscar por nombre o email...">
+            <select class="filter-select">
+                <option>Todos los roles</option>
+                <option>Admin</option>
+                <option>Librarian</option>
+                <option>Member</option>
+            </select>
+            <select class="filter-select">
+                <option>Todos los estados</option>
+                <option>Activo</option>
+                <option>Inactivo</option>
+            </select>
+        </div>
+
+        <!-- Desktop table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Préstamos activos</th>
+                        <th>Registrado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><div class="user-cell"><div class="user-avatar a1">AJ</div><div><div class="user-name">Alvaro Julio</div><div class="user-email">ajjbdeveloper@gmail.com</div></div></div></td>
+                        <td><span class="role-badge admin">Admin</span></td>
+                        <td><span class="status-dot active">Activo</span></td>
+                        <td>2</td>
+                        <td>15 Ene 2026</td>
+                        <td><button class="action-btn"><span class="material-icons-outlined">more_vert</span></button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="user-cell"><div class="user-avatar a2">MG</div><div><div class="user-name">María García</div><div class="user-email">maria.garcia@email.com</div></div></div></td>
+                        <td><span class="role-badge librarian">Librarian</span></td>
+                        <td><span class="status-dot active">Activo</span></td>
+                        <td>0</td>
+                        <td>20 Feb 2026</td>
+                        <td><button class="action-btn"><span class="material-icons-outlined">more_vert</span></button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="user-cell"><div class="user-avatar a3">CL</div><div><div class="user-name">Carlos López</div><div class="user-email">carlos.lopez@email.com</div></div></div></td>
+                        <td><span class="role-badge member">Member</span></td>
+                        <td><span class="status-dot active">Activo</span></td>
+                        <td>4</td>
+                        <td>5 Mar 2026</td>
+                        <td><button class="action-btn"><span class="material-icons-outlined">more_vert</span></button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="user-cell"><div class="user-avatar a4">AR</div><div><div class="user-name">Ana Rodríguez</div><div class="user-email">ana.rodriguez@email.com</div></div></div></td>
+                        <td><span class="role-badge member">Member</span></td>
+                        <td><span class="status-dot active">Activo</span></td>
+                        <td>1</td>
+                        <td>12 Abr 2026</td>
+                        <td><button class="action-btn"><span class="material-icons-outlined">more_vert</span></button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="user-cell"><div class="user-avatar a5">JP</div><div><div class="user-name">Juan Pérez</div><div class="user-email">juan.perez@email.com</div></div></div></td>
+                        <td><span class="role-badge member">Member</span></td>
+                        <td><span class="status-dot inactive">Inactivo</span></td>
+                        <td>0</td>
+                        <td>8 May 2026</td>
+                        <td><button class="action-btn"><span class="material-icons-outlined">more_vert</span></button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="table-footer">
+                <span>Mostrando 1-5 de 486 usuarios</span>
+                <div class="page-nav">
+                    <button>←</button>
+                    <button class="active">1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>→</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile cards -->
+        <div class="mobile-users">
+            <div class="mobile-user-card">
+                <div class="user-avatar a1">AJ</div>
+                <div class="mobile-user-info">
+                    <div class="user-name">Alvaro Julio</div>
+                    <div class="user-email">ajjbdeveloper@gmail.com</div>
+                    <div class="mobile-user-meta"><span class="role-badge admin">Admin</span><span class="status-dot active">Activo</span></div>
+                </div>
+                <button class="action-btn"><span class="material-icons-outlined">more_vert</span></button>
+            </div>
+            <div class="mobile-user-card">
+                <div class="user-avatar a2">MG</div>
+                <div class="mobile-user-info">
+                    <div class="user-name">María García</div>
+                    <div class="user-email">maria.garcia@email.com</div>
+                    <div class="mobile-user-meta"><span class="role-badge librarian">Librarian</span><span class="status-dot active">Activo</span></div>
+                </div>
+                <button class="action-btn"><span class="material-icons-outlined">more_vert</span></button>
+            </div>
+            <div class="mobile-user-card">
+                <div class="user-avatar a3">CL</div>
+                <div class="mobile-user-info">
+                    <div class="user-name">Carlos López</div>
+                    <div class="user-email">carlos.lopez@email.com</div>
+                    <div class="mobile-user-meta"><span class="role-badge member">Member</span><span class="status-dot active">Activo</span></div>
+                </div>
+                <button class="action-btn"><span class="material-icons-outlined">more_vert</span></button>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="bottom-nav-items">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="material-icons-outlined">dashboard</span>Home</a>
+            <a href="catalog.html" class="bottom-nav-item"><span class="material-icons-outlined">search</span>Buscar</a>
+            <a href="my-loans.html" class="bottom-nav-item"><span class="material-icons-outlined">swap_horiz</span>Préstamos</a>
+            <a href="recommendations.html" class="bottom-nav-item"><span class="material-icons-outlined">auto_awesome</span>Para ti</a>
+            <a href="#" class="bottom-nav-item active"><span class="material-icons-outlined">person</span>Perfil</a>
+        </div>
+    </nav>
+</body>
+</html>

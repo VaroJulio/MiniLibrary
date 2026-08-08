@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniLibrary - Detalle de Libro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 260px; background: #1E3A5F; color: white; padding: 24px 0; z-index: 100; }
+        .sidebar-logo { font-size: 1.25rem; font-weight: 700; padding: 0 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 10px; }
+        .nav-section { padding: 0 12px; margin-bottom: 24px; }
+        .nav-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); padding: 0 12px; margin-bottom: 8px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; color: rgba(255,255,255,0.75); text-decoration: none; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .nav-item.active { background: rgba(255,255,255,0.15); color: white; font-weight: 500; }
+        .nav-item .material-icons-outlined { font-size: 1.25rem; }
+        .main { margin-left: 260px; padding: 32px; max-width: 1200px; }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #64748B;
+            margin-bottom: 24px;
+        }
+        .breadcrumb a { color: #4A6FA5; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        /* Book detail layout */
+        .book-detail {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        .book-cover-large {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+        }
+        .book-content h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1E293B;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .book-author-large {
+            font-size: 1.1rem;
+            color: #64748B;
+            margin-bottom: 16px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+        .status-badge.available { background: #D1FAE5; color: #065F46; }
+        .status-badge.checked-out { background: #FEE2E2; color: #991B1B; }
+        .status-badge .material-icons-outlined { font-size: 1rem; }
+
+        .book-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .meta-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+        }
+        .meta-label { font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .meta-value { font-size: 0.9rem; font-weight: 500; color: #1E293B; }
+
+        .book-description {
+            margin-bottom: 24px;
+            line-height: 1.7;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+        .book-description h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1E293B;
+            margin-bottom: 8px;
+        }
+
+        /* Action buttons */
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #1E3A5F; color: white; }
+        .btn-primary:hover { background: #0F1F33; }
+        .btn-secondary { background: white; color: #1E3A5F; border: 1px solid #E2E8F0; }
+        .btn-secondary:hover { border-color: #1E3A5F; }
+        .btn .material-icons-outlined { font-size: 1.1rem; }
+
+        /* Related books */
+        .related-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .related-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1E3A5F;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+        .related-card {
+            text-decoration: none;
+            color: inherit;
+        }
+        .related-cover {
+            width: 100%;
+            aspect-ratio: 3/4;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .related-cover.r1 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .related-cover.r2 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .related-cover.r3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .related-title { font-size: 0.8rem; font-weight: 600; line-height: 1.3; }
+        .related-author { font-size: 0.7rem; color: #64748B; }
+
+        /* Mobile */
+        .mobile-header { display: none; position: fixed; top: 0; left: 0; right: 0; background: white; padding: 12px 16px; border-bottom: 1px solid #E2E8F0; z-index: 99; }
+        .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E2E8F0; padding: 8px 0; z-index: 100; }
+        .bottom-nav-items { display: flex; justify-content: space-around; }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.65rem; color: #64748B; text-decoration: none; }
+        .bottom-nav-item .material-icons-outlined { font-size: 1.4rem; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 72px 16px 80px; }
+            .mobile-header { display: flex; align-items: center; gap: 12px; }
+            .bottom-nav { display: block; }
+            .book-detail { grid-template-columns: 1fr; gap: 24px; }
+            .book-cover-large { max-width: 200px; margin: 0 auto; }
+            .book-meta-grid { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; }
+            .btn { justify-content: center; }
+            .related-grid { grid-template-columns: repeat(3, 1fr); }
+            .breadcrumb { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-logo"><span>📚</span> MiniLibrary</div>
+        <div class="nav-section">
+            <div class="nav-label">Principal</div>
+            <a href="dashboard.html" class="nav-item"><span class="material-icons-outlined">dashboard</span> Dashboard</a>
+            <a href="catalog.html" class="nav-item active"><span class="material-icons-outlined">library_books</span> Catálogo</a>
+            <a href="my-loans.html" class="nav-item"><span class="material-icons-outlined">swap_horiz</span> Préstamos</a>
+            <a href="recommendations.html" class="nav-item"><span class="material-icons-outlined">auto_awesome</span> Recomendaciones</a>
+        </div>
+    </nav>
+
+    <div class="mobile-header">
+        <a href="catalog.html"><span class="material-icons-outlined" style="color:#64748B">arrow_back</span></a>
+        <span style="font-size:1rem; font-weight:600; color:#1E3A5F">Detalle</span>
+    </div>
+
+    <main class="main">
+        <div class="breadcrumb">
+            <a href="catalog.html">Catálogo</a>
+            <span class="material-icons-outlined" style="font-size:1rem">chevron_right</span>
+            <span>Clean Code</span>
+        </div>
+
+        <div class="book-detail">
+            <div class="book-cover-large">📘</div>
+            <div class="book-content">
+                <h1>Clean Code: A Handbook of Agile Software Craftsmanship</h1>
+                <p class="book-author-large">Robert C. Martin</p>
+                <span class="status-badge available">
+                    <span class="material-icons-outlined">check_circle</span> Disponible
+                </span>
+
+                <div class="book-meta-grid">
+                    <div class="meta-item">
+                        <div class="meta-label">ISBN</div>
+                        <div class="meta-value">978-0132350884</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Año de publicación</div>
+                        <div class="meta-value">2008</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Categoría</div>
+                        <div class="meta-value">Tecnología</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-label">Préstamos totales</div>
+                        <div class="meta-value">47 veces</div>
+                    </div>
+                </div>
+
+                <div class="book-description">
+                    <h3>Descripción</h3>
+                    <p>Even bad code can function. But if code isn't clean, it can bring a development organization to its knees. Every year, countless hours and significant resources are lost because of poorly written code. But it doesn't have to be that way. Noted software expert Robert C. Martin presents a revolutionary paradigm with Clean Code.</p>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-primary">
+                        <span class="material-icons-outlined">bookmark_add</span> Solicitar préstamo
+                    </button>
+                    <button class="btn btn-secondary">
+                        <span class="material-icons-outlined">share</span> Compartir
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related books (AI recommendations) -->
+        <div class="related-section">
+            <h3><span class="material-icons-outlined">auto_awesome</span> Libros relacionados</h3>
+            <div class="related-grid">
+                <a href="#" class="related-card">
+                    <div class="related-cover r1">📕</div>
+                    <div class="related-title">The Pragmatic Programmer</div>
+                    <div class="related-author">David Thomas</div>
+                </a>
+                <a href="#" class="related-card">
+                    <div class="related-cover r2">📗</div>
+                    <div class="related-title">Refactoring</div>
+                    <div class="related-author">Martin Fowler</div>
+                </a>
+                <a href="#" class="related-card">
+                    <div class="related-cover r3">📙</div>
+                    <div class="related-title">Design Patterns</div>
+                    <div class="related-author">Gang of Four</div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="bottom-nav-items">
+            <a href="dashboard.html" class="bottom-nav-item"><span class="material-icons-outlined">dashboard</span>Home</a>
+            <a href="catalog.html" class="bottom-nav-item"><span class="material-icons-outlined">search</span>Buscar</a>
+            <a href="my-loans.html" class="bottom-nav-item"><span class="material-icons-outlined">swap_horiz</span>Préstamos</a>
+            <a href="recommendations.html" class="bottom-nav-item"><span class="material-icons-outlined">auto_awesome</span>Para ti</a>
+            <a href="#" class="bottom-nav-item"><span class="material-icons-outlined">person</span>Perfil</a>
+        </div>
+    </nav>
+</body>
+</html>

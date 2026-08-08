@@ -1,23 +1,23 @@
-version: '3.8'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: minilibrary-db
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SA_PASSWORD}
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD:-YourStrong!Passw0rd}
     ports:
       - "1433:1433"
     volumes:
       - sqlserver-data:/var/opt/mssql
     healthcheck:
-      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$${MSSQL_SA_PASSWORD}" -C -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     networks:
       - minilibrary-net
+    restart: unless-stopped
 
   api:
     build:
@@ -26,31 +26,55 @@ services:
     container_name: minilibrary-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniLibraryDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniLibraryDb;User Id=sa;Password=${SA_PASSWORD:-YourStrong!Passw0rd};TrustServerCertificate=true;
+      - Jwt__Secret=${JWT_SECRET:-MiniLibrary-Development-Secret-Key-2024-Long-Enough-For-HmacSha256!}
+      - Jwt__Issuer=MiniLibrary
+      - Jwt__Audience=MiniLibrary
+      - Jwt__ExpirationMinutes=60
+      - OpenAI__ApiKey=${OPENAI_API_KEY:-}
+      - Authentication__EnableDevTokens=${ENABLE_DEV_TOKENS:-true}
+      - Authentication__Google__ClientId=${GOOGLE_CLIENT_ID:-}
+      - Authentication__Google__ClientSecret=${GOOGLE_CLIENT_SECRET:-}
+      - Authentication__Microsoft__ClientId=${MICROSOFT_CLIENT_ID:-}
+      - Authentication__Microsoft__ClientSecret=${MICROSOFT_CLIENT_SECRET:-}
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+      - App__FrontendUrl=http://localhost:3000
+      - App__PublicUrl=http://localhost:5000
     ports:
-      - "5000:8080"
+      - "5000:5000"
     depends_on:
       sqlserver:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
     networks:
       - minilibrary-net
+    restart: unless-stopped
 
   web:
     build:
       context: ..
       dockerfile: docker/Dockerfile.web
+      args:
+        VITE_API_BASE_URL: /api
     container_name: minilibrary-web
-    environment:
-      - VITE_API_URL=http://localhost:5000
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - minilibrary-net
+    restart: unless-stopped
 
 volumes:
   sqlserver-data:
+    driver: local
 
 networks:
   minilibrary-net:

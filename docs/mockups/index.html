@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniLibrary - Mockups Index</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F8FAFC;
+            color: #1E293B;
+            padding: 48px 24px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1E3A5F;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #64748B;
+            font-size: 1rem;
+            margin-bottom: 40px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s, transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+        .card-icon.auth { background: #EEF2FF; }
+        .card-icon.dashboard { background: #F0FDF4; }
+        .card-icon.catalog { background: #FEF3C7; }
+        .card-icon.detail { background: #FCE7F3; }
+        .card-icon.loans { background: #E0F2FE; }
+        .card-icon.users { background: #F3E8FF; }
+        .card-icon.ai { background: #ECFDF5; }
+        .card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1E3A5F;
+        }
+        .card p {
+            font-size: 0.875rem;
+            color: #64748B;
+            line-height: 1.5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 12px;
+        }
+        .badge.all { background: #DBEAFE; color: #1E40AF; }
+        .badge.admin { background: #F3E8FF; color: #7C3AED; }
+        .badge.librarian { background: #D1FAE5; color: #065F46; }
+        .badge.member { background: #FEF3C7; color: #92400E; }
+        .info {
+            margin-top: 40px;
+            padding: 24px;
+            background: #EEF2FF;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            color: #4338CA;
+            line-height: 1.6;
+        }
+        .info strong { display: block; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MiniLibrary UI Mockups</h1>
+        <p class="subtitle">Prototipos responsivos de alta fidelidad — abrir en browser y redimensionar para ver adaptación mobile/tablet/desktop</p>
+
+        <div class="grid">
+            <a href="login.html" class="card">
+                <div class="card-icon auth">🔐</div>
+                <h3>Login / SSO</h3>
+                <p>Pantalla de inicio de sesión con opciones de Google y Microsoft OAuth.</p>
+                <span class="badge all">Todos los roles</span>
+            </a>
+
+            <a href="dashboard.html" class="card">
+                <div class="card-icon dashboard">📊</div>
+                <h3>Dashboard</h3>
+                <p>Panel de estadísticas con métricas del sistema, gráficos y actividad reciente.</p>
+                <span class="badge admin">Admin</span>
+                <span class="badge librarian">Librarian</span>
+            </a>
+
+            <a href="catalog.html" class="card">
+                <div class="card-icon catalog">📚</div>
+                <h3>Catálogo de Libros</h3>
+                <p>Búsqueda, filtros y listado de libros con vista grid/lista responsive.</p>
+                <span class="badge all">Todos los roles</span>
+            </a>
+
+            <a href="book-detail.html" class="card">
+                <div class="card-icon detail">📖</div>
+                <h3>Detalle de Libro</h3>
+                <p>Información completa del libro con acciones de checkout y recomendaciones relacionadas.</p>
+                <span class="badge all">Todos los roles</span>
+            </a>
+
+            <a href="my-loans.html" class="card">
+                <div class="card-icon loans">🔄</div>
+                <h3>Mis Préstamos</h3>
+                <p>Historial y préstamos activos del usuario con acciones de devolución.</p>
+                <span class="badge member">Member</span>
+            </a>
+
+            <a href="user-management.html" class="card">
+                <div class="card-icon users">👥</div>
+                <h3>Gestión de Usuarios</h3>
+                <p>Tabla de usuarios con asignación de roles y filtros.</p>
+                <span class="badge admin">Admin</span>
+            </a>
+
+            <a href="recommendations.html" class="card">
+                <div class="card-icon ai">✨</div>
+                <h3>Recomendaciones IA</h3>
+                <p>Libros recomendados personalizados con justificación de la IA.</p>
+                <span class="badge member">Member</span>
+            </a>
+        </div>
+
+        <div class="info">
+            <strong>Notas de diseño</strong>
+            Todos los mockups son responsivos. Viewports target: Mobile (375px), Tablet (768px), Desktop (1440px).
+            Paleta: Primary #1E3A5F, Secondary #F59E0B, Background #F8FAFC.
+            Tipografía: Inter (UI), Merriweather (títulos literarios).
+            Componentes: Material UI v5 conventions.
+        </div>
+    </div>
+</body>
+</html>

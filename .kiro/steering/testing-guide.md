@@ -5,37 +5,50 @@ fileMatchPattern: "**/*Test*,**/*test*,**/*spec*"
 
 # Testing Guide
 
+## Overview
+Testing is split into **Backend** (C#/.NET) and **Frontend** (TypeScript/React) strategies.
+For detailed frontend testing strategy, see `frontend-testing.md` steering file.
+
 ## Running Tests
 
-### Unit Tests
+### Backend Unit Tests
 ```bash
 cd tests/MiniLibrary.UnitTests
 dotnet test
 dotnet test --filter "Category=Unit"
 ```
 
-### Integration Tests
+### Backend Integration Tests
 ```bash
 # Requires Docker running (TestContainers will spin up SQL Server)
 cd tests/MiniLibrary.IntegrationTests
 dotnet test
 ```
 
-### Frontend Tests
+### Frontend Unit + Integration Tests
 ```bash
 cd src/MiniLibrary.Web
-npm test
-npm run test:coverage
+npm run test -- --run     # Single run
+npm run test:coverage     # With coverage
 ```
 
-### All Tests
+### Frontend E2E Tests (Playwright)
+```bash
+cd src/MiniLibrary.Web
+npx playwright test                    # All viewports
+npx playwright test --project=mobile   # Mobile only
+npx playwright test --project=desktop  # Desktop only
+npx playwright show-report             # View HTML report
+```
+
+### All Backend Tests
 ```bash
 dotnet test MiniLibrary.sln
 ```
 
 ## Test Structure
 
-### Unit Tests (xUnit + Moq + FluentAssertions)
+### Backend Unit Tests (xUnit + Moq + FluentAssertions)
 ```csharp
 public class CreateBookCommandHandlerTests
 {
@@ -55,7 +68,7 @@ public class CreateBookCommandHandlerTests
 }
 ```
 
-### Integration Tests (TestContainers)
+### Backend Integration Tests (TestContainers)
 ```csharp
 public class BooksControllerTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -69,7 +82,7 @@ public class BooksControllerTests : IClassFixture<WebApplicationFactory<Program>
 }
 ```
 
-### Property-Based Tests (FsCheck)
+### Backend Property-Based Tests (FsCheck)
 ```csharp
 [Property]
 public Property BookTitle_ShouldNeverBeEmpty(NonEmptyString title)
@@ -80,6 +93,14 @@ public Property BookTitle_ShouldNeverBeEmpty(NonEmptyString title)
 ```
 
 ## Coverage Requirements
+
+### Backend
 - Minimum 80% line coverage for business logic
 - All public API endpoints must have integration tests
 - All domain invariants must have property-based tests
+
+### Frontend
+- See `frontend-testing.md` for detailed frontend coverage requirements
+- Unit tests: > 80% of functions and hooks
+- E2E: all critical flows covered in all viewports
+- Visual regression: all screens in all standard viewports

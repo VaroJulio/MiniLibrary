@@ -1,11 +1,12 @@
 ---
-inclusion: fileMatch
-fileMatchPattern: "**/.github/**,**/README*,**/*.yml"
+inclusion: always
 ---
 
 # GitHub Workflow Guide
 
 ## Repositorio
+- **Owner**: VaroJulio
+- **Repo**: MiniLibrary
 - **Plataforma**: GitHub
 - **Registry**: ghcr.io (GitHub Container Registry)
 - **CI/CD**: GitHub Actions
@@ -13,20 +14,33 @@ fileMatchPattern: "**/.github/**,**/README*,**/*.yml"
 ## Branching Strategy
 
 ```
-main (producción, protegida)
- └── develop (integración, protegida)
+main (producción, protegida — NUNCA push directo)
+ └── develop (integración, protegida — NUNCA push directo)
       ├── feature/MINI-XX-description
       ├── bugfix/MINI-XX-description
       └── chore/description
 ```
 
-### Reglas
-- `main`: solo recibe merges desde `develop` vía release PR
-- `develop`: recibe PRs de feature/bugfix branches
-- Feature branches: siempre desde `develop`, siempre con issue Jira
-- Hotfixes: desde `main`, merge a `main` y `develop`
+### Reglas de protección
+- **`main`**: solo recibe merges desde `develop` vía release PR. Push directo PROHIBIDO.
+- **`develop`**: solo recibe merges desde feature/bugfix branches vía PR. Push directo PROHIBIDO.
+- **Feature branches**: siempre desde `develop`, siempre con issue Jira en el nombre.
+- **Hotfixes**: desde `main`, merge a `main` y `develop` (ambos vía PR).
+- **Todo cambio, sin excepción (incluso docs, steering, configs) entra vía Pull Request.**
+
+### Naming de branches
+| Tipo | Formato | Ejemplo |
+|------|---------|--------|
+| Feature | `feature/MINI-XX-descripcion` | `feature/MINI-48-search-feature` |
+| Bugfix | `bugfix/MINI-XX-descripcion` | `bugfix/MINI-55-fix-loan-limit` |
+| Chore | `chore/descripcion` | `chore/update-steering-docs` |
+| Hotfix | `hotfix/MINI-XX-descripcion` | `hotfix/MINI-60-auth-crash` |
 
 ## Pull Requests
+
+### Cuándo crear un PR
+- Al completar TODOS los sub-tasks de una tarea top-level.
+- Nunca PRs parciales (un PR = una tarea completa).
 
 ### Título
 Formato: `type(scope): description [MINI-XX]`
@@ -48,22 +62,26 @@ Brief description of changes.
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
 - [ ] Manual testing performed
+- [ ] Build passes (`dotnet build`)
+- [ ] All tests pass (`dotnet test`)
 
 ## Documentation
-- [ ] API docs updated
+- [ ] API docs updated (Swagger XML comments)
 - [ ] Architecture diagrams updated (if applicable)
-- [ ] Changelog updated
+- [ ] Changelog updated (`docs/CHANGELOG.md`)
+
+Closes MINI-XX
 ```
 
 ### Merge Strategy
-- Feature → develop: **Squash merge** (clean history)
+- Feature/Bugfix → develop: **Squash merge** (clean history, one commit per feature)
 - Develop → main: **Merge commit** (preserve release boundary)
 
 ## GitHub Actions
 
 ### CI Pipeline (`ci.yml`)
 - Trigger: PR to `develop` or `main`
-- Jobs: build, test, lint, coverage
+- Jobs: restore, build, test, lint
 - Required to pass before merge
 
 ### CD Pipeline (`cd.yml`)
@@ -72,7 +90,6 @@ Brief description of changes.
 
 ### Checks requeridos antes de merge
 - CI pipeline passing
-- Al menos 1 approval (si hay más de 1 contributor)
 - No conflictos con base branch
 - Branch actualizado con base
 
@@ -86,8 +103,7 @@ Los siguientes secrets deben estar configurados en GitHub Settings > Secrets:
 - `DOCKER_REGISTRY_TOKEN` - Para push a ghcr.io
 - `OPENAI_API_KEY` - Para features de IA
 - `SA_PASSWORD` - Para SQL Server en tests de integración
-- `DEPLOY_SSH_KEY` - Para deploy (si aplica)
 
 ## GitHub Container Registry
-- Imágenes publicadas en: `ghcr.io/ajjbdeveloper/minilibrary-api` y `ghcr.io/ajjbdeveloper/minilibrary-web`
+- Imágenes: `ghcr.io/varojulio/minilibrary-api` y `ghcr.io/varojulio/minilibrary-web`
 - Tags: `latest`, `v1.0.0`, `sha-abc1234`

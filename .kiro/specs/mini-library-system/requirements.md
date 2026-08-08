@@ -20,6 +20,11 @@ MiniLibrary es un sistema de gestión de biblioteca completo que permite adminis
 - **Búsqueda_Semántica**: Búsqueda potenciada por IA que entiende el significado de la consulta, no solo coincidencias textuales
 - **Motor_Recomendaciones**: Componente que utiliza OpenAI API para sugerir libros relevantes al usuario
 - **Dashboard**: Panel de control con estadísticas y métricas del sistema
+- **Valoración**: Puntuación numérica (1-5 estrellas) y reseña textual opcional que un Member asigna a un Libro que ha leído
+- **Ranking**: Lista ordenada de Libros o Members según criterios de puntuación, popularidad o actividad
+- **Lista_Deseos**: Colección personal de Libros que un Member desea leer, con alertas de disponibilidad
+- **Notificación**: Mensaje generado por el sistema dirigido a un Member, entregado tanto in-app como por correo electrónico
+- **Badge**: Reconocimiento visual otorgado a un Member al cumplir un logro específico (gamificación)
 
 ## Requirements
 
@@ -207,3 +212,110 @@ MiniLibrary es un sistema de gestión de biblioteca completo que permite adminis
 3. THE API SHALL serializar fechas en formato ISO 8601 (UTC) en todas las respuestas
 4. FOR ALL objetos de respuesta válidos, serializar y deserializar el objeto SHALL producir un objeto equivalente al original (propiedad round-trip)
 5. THE API SHALL incluir un header X-Correlation-Id en todas las respuestas para facilitar el rastreo de solicitudes
+
+### Requisito 15: Experiencia de Usuario y Rendimiento Frontend
+
+**Historia de Usuario:** Como usuario, quiero que la interfaz sea intuitiva, visualmente atractiva y responda de forma instantánea, para tener una experiencia agradable y productiva sin fricciones.
+
+#### Criterios de Aceptación
+
+1. THE Frontend SHALL alcanzar un First Contentful Paint (FCP) menor a 1.5 segundos y un Time to Interactive (TTI) menor a 3 segundos medidos con Lighthouse en condiciones de red 4G simulada
+2. THE Frontend SHALL mostrar un skeleton loader en menos de 100ms tras cualquier interacción que dispare una carga de datos, y el contenido real debe reemplazar al skeleton en menos de 2 segundos bajo condiciones normales de red
+3. THE Frontend SHALL implementar un design system consistente basado en Material UI con paleta de colores custom (primary: Indigo #1E3A5F, secondary: Amber #F59E0B), tipografía Inter/Roboto, y border-radius unificado de 8-12px
+4. THE Frontend SHALL soportar modo claro y modo oscuro con toggle accesible, persistiendo la preferencia del usuario en localStorage y respetando prefers-color-scheme del sistema como valor por defecto
+5. THE Frontend SHALL implementar code splitting por ruta usando React.lazy y Suspense, manteniendo el bundle inicial por debajo de 200KB gzipped
+6. THE Frontend SHALL proporcionar empty states informativos con ilustración, mensaje descriptivo y call-to-action cuando no existan datos que mostrar en cualquier lista o sección
+7. THE Frontend SHALL implementar optimistic updates para acciones frecuentes (check-out, check-in) mostrando el resultado esperado inmediatamente y revirtiendo con notificación si la API retorna error
+8. THE Frontend SHALL mantener un Cumulative Layout Shift (CLS) menor a 0.1 en todas las páginas, reservando espacio para imágenes y contenido dinámico antes de su carga
+9. THE Frontend SHALL pasar todas las pruebas de visual regression en los 5 viewports estándar (375x667, 390x844, 768x1024, 1440x900, 1920x1080) sin diferencias superiores al 0.1% respecto a los baselines aprobados
+
+### Requisito 16: Valoraciones y Reseñas de Libros
+
+**Historia de Usuario:** Como Member, quiero calificar y escribir reseñas de los libros que he leído, para compartir mi opinión con otros usuarios y ayudarlos a decidir qué leer.
+
+#### Criterios de Aceptación
+
+1. WHEN un Member que ha devuelto un Libro (préstamo completado) envía una valoración con puntuación entre 1 y 5 estrellas y opcionalmente una reseña textual de máximo 1000 caracteres, THE API SHALL registrar la valoración y actualizar el promedio de puntuación del Libro
+2. WHEN un Member intenta valorar un Libro que no ha tomado prestado previamente, THE API SHALL rechazar la operación con código HTTP 403 indicando que solo usuarios que han leído el libro pueden valorarlo
+3. WHEN un Member intenta enviar una segunda valoración para un mismo Libro, THE API SHALL actualizar la valoración existente en lugar de crear una nueva
+4. THE API SHALL calcular y almacenar el promedio de puntuación de cada Libro redondeado a 1 decimal, junto con el total de valoraciones recibidas
+5. WHEN un usuario autenticado consulta un Libro, THE API SHALL incluir en la respuesta: promedio de puntuación, total de valoraciones, y las últimas 5 reseñas ordenadas por fecha descendente
+6. WHEN un usuario autenticado solicita las reseñas de un Libro, THE API SHALL retornar una lista paginada (20 por página) con: autor de la reseña (nombre), puntuación, texto de la reseña y fecha de publicación
+7. IF un Member envía una reseña que excede 1000 caracteres o una puntuación fuera del rango 1-5, THEN THE API SHALL retornar código HTTP 422 con errores de validación
+8. WHEN un Member elimina su propia reseña, THE API SHALL eliminar la valoración y recalcular el promedio de puntuación del Libro
+
+### Requisito 17: Rankings de Libros
+
+**Historia de Usuario:** Como usuario, quiero ver rankings de libros organizados por diferentes criterios, para descubrir los títulos más valorados y populares en las categorías que me interesan.
+
+#### Criterios de Aceptación
+
+1. WHEN un usuario autenticado solicita el ranking global de libros, THE API SHALL retornar una lista paginada de Libros ordenados por promedio de puntuación descendente, incluyendo solo aquellos con al menos 3 valoraciones
+2. THE API SHALL soportar filtrado del ranking por: categoría, género, rango de año de publicación y estado de disponibilidad, como parámetros opcionales combinables
+3. THE API SHALL soportar ordenamiento del ranking por: promedio de puntuación (por defecto), número de valoraciones, número total de préstamos o fecha de publicación
+4. WHEN un usuario autenticado solicita el ranking por categoría, THE API SHALL retornar las categorías disponibles con el libro mejor puntuado de cada una y el promedio general de la categoría
+5. THE API SHALL retornar para cada libro en el ranking: posición, título, autor, categoría, promedio de puntuación, total de valoraciones, total de préstamos y estado de disponibilidad
+6. THE API SHALL cachear los rankings durante 15 minutos e invalidar la caché cuando se registre una nueva valoración
+7. IF un usuario no autenticado intenta acceder a los rankings, THEN THE API SHALL retornar código HTTP 401
+
+### Requisito 18: Lista de Deseos y Alertas de Disponibilidad
+
+**Historia de Usuario:** Como Member, quiero marcar libros que me interesan y recibir una alerta cuando estén disponibles, para no perder la oportunidad de tomarlos prestados.
+
+#### Criterios de Aceptación
+
+1. WHEN un Member agrega un Libro a su lista de deseos, THE API SHALL registrar la entrada con la fecha de adición y retornar código HTTP 201
+2. WHEN un Member consulta su lista de deseos, THE API SHALL retornar una lista paginada (20 por página) con los libros agregados, incluyendo el estado actual de cada libro (Available, CheckedOut) y la fecha en que fue agregado
+3. WHEN un Libro en la lista de deseos de uno o más Members cambia de estado CheckedOut a Available (check-in), THE Sistema SHALL generar una Notificación in-app y enviar un correo electrónico a cada Member que tenga ese Libro en su lista de deseos, indicando el título del libro y que está disponible para préstamo
+4. WHEN un Member solicita sus notificaciones, THE API SHALL retornar una lista de notificaciones no leídas y leídas, ordenadas por fecha descendente, con un máximo de 50 notificaciones
+5. WHEN un Member marca una notificación como leída, THE API SHALL actualizar el estado de la notificación
+6. IF un Member intenta agregar un Libro que ya está en su lista de deseos, THEN THE API SHALL retornar código HTTP 409 indicando que el libro ya está en la lista
+7. WHEN un Member elimina un Libro de su lista de deseos, THE API SHALL eliminarlo y dejar de generar alertas de disponibilidad para ese Libro
+8. THE API SHALL limitar la lista de deseos a un máximo de 20 Libros por Member, retornando código HTTP 409 si se excede el límite
+9. WHEN un Member realiza check-out de un Libro que tiene en su lista de deseos, THE Sistema SHALL eliminarlo automáticamente de la lista
+10. THE Sistema SHALL enviar correos electrónicos de notificación utilizando la dirección de email registrada en el perfil SSO del Member, con un formato HTML responsive y opción de desuscripción por tipo de alerta
+
+### Requisito 19: Alertas de Vencimiento de Préstamos y Ranking de Lectores
+
+**Historia de Usuario:** Como Member, quiero recibir alertas cuando mis préstamos estén por vencer, y como usuario quiero ver un ranking de los lectores más activos de la biblioteca.
+
+#### Criterios de Aceptación
+
+1. WHEN un Préstamo activo tiene 3 días o menos para su fecha de vencimiento, THE Sistema SHALL generar una Notificación in-app y enviar un correo electrónico al Member indicando el título del libro, la fecha de vencimiento y los días restantes
+2. WHEN un Préstamo excede su fecha de vencimiento, THE Sistema SHALL generar una Notificación in-app y enviar un correo electrónico diario al Member indicando que el préstamo está vencido y los días de retraso acumulados
+3. THE Sistema SHALL generar alertas de vencimiento una vez al día (proceso batch) evaluando todos los préstamos activos
+4. WHEN un Librarian o Admin solicita el listado de préstamos vencidos, THE API SHALL retornar una lista paginada de todos los préstamos cuya fecha de vencimiento sea anterior a la fecha actual, incluyendo datos del Member y del Libro
+5. WHEN un usuario autenticado solicita el ranking de lectores, THE API SHALL retornar una lista paginada de Members ordenados por número total de libros leídos (préstamos devueltos) en los últimos 12 meses
+6. THE API SHALL retornar para cada lector en el ranking: posición, nombre, total de libros leídos en el período, categoría más leída y promedio de puntuación otorgada
+7. THE API SHALL soportar filtrado del ranking de lectores por período: últimos 30 días, 90 días, 12 meses o histórico total
+8. IF un Member solicita el ranking de lectores, THE API SHALL indicar la posición del Member solicitante dentro del ranking
+9. THE API SHALL cachear el ranking de lectores durante 1 hora e invalidarlo cuando se registre una nueva devolución
+10. THE Sistema SHALL permitir al Member configurar sus preferencias de notificación por correo electrónico (activar/desactivar alertas de vencimiento y alertas de disponibilidad) mediante un endpoint de configuración de perfil
+
+### Requisito 20: Gamificación y Logros
+
+**Historia de Usuario:** Como Member, quiero ganar badges y reconocimientos por mi actividad de lectura, para sentirme motivado a leer más y participar activamente en la comunidad de la biblioteca.
+
+#### Criterios de Aceptación
+
+1. THE Sistema SHALL definir los siguientes badges con sus criterios de obtención:
+   - "Primer Préstamo": completar el primer préstamo (check-out)
+   - "Lector Novato": devolver 5 libros
+   - "Lector Ávido": devolver 15 libros
+   - "Lector Experto": devolver 50 libros
+   - "Centenario": devolver 100 libros
+   - "Crítico Literario": escribir 10 reseñas
+   - "Voz de la Comunidad": escribir 25 reseñas
+   - "Explorador": leer libros de al menos 5 categorías diferentes
+   - "Polímata": leer libros de al menos 10 categorías diferentes
+   - "Puntual": devolver 10 libros consecutivos sin vencimiento
+   - "Lector del Mes": tener el mayor número de devoluciones en un mes calendario
+   - "Top Reviewer": tener la reseña con más "útil" en un mes
+2. WHEN un Member cumple los criterios de un Badge, THE Sistema SHALL otorgar el Badge al Member, generar una Notificación in-app de felicitación, y enviar un correo electrónico celebrando el logro
+3. WHEN un Member consulta su perfil, THE API SHALL retornar la lista de Badges obtenidos con fecha de obtención, y la lista de Badges pendientes con el progreso actual hacia cada uno (porcentaje o conteo actual vs requerido)
+4. THE API SHALL evaluar el cumplimiento de badges de forma asíncrona tras cada devolución de libro o publicación de reseña, sin impactar el tiempo de respuesta de la operación principal
+5. WHEN un usuario autenticado consulta el perfil público de otro Member, THE API SHALL mostrar los Badges obtenidos por ese Member
+6. WHEN un Member marca una reseña de otro Member como "útil", THE API SHALL registrar el voto y actualizar el conteo de votos útiles de la reseña, limitando a 1 voto por Member por reseña
+7. THE API SHALL proveer un endpoint de leaderboard de gamificación que muestre los 10 Members con más Badges obtenidos, actualizado cada hora
+8. THE Sistema SHALL otorgar el Badge "Lector del Mes" automáticamente el primer día de cada mes al Member con más devoluciones en el mes anterior, generando una Notificación y correo electrónico
+9. IF un Member intenta votar como "útil" su propia reseña, THEN THE API SHALL rechazar la operación con código HTTP 403
