@@ -10,6 +10,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - Auto-apply EF migrations on startup (`Database.Migrate()`, idempotent) [MINI-58]
 - `prompt=select_account` on Google/Microsoft OAuth (always shows account picker) [MINI-58]
 - `App:PublicUrl` and `App:FrontendUrl` configuration for OAuth redirect handling [MINI-58]
+- RatingForm rendered on BookDetailPage for authenticated users who have returned the book [MINI-70]
+- Separate ratings fetch on book detail page via `GET /api/books/{bookId}/ratings` [MINI-75]
 
 ### Fixed
 - OAuth redirect_uri mismatch in Docker (API now listens on port 5000 matching exposed port) [MINI-58]
@@ -18,6 +20,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - OAuth callback now redirects to frontend SPA instead of returning JSON [MINI-58]
 - Frontend LoginPage missing `/api` prefix in OAuth redirect URL [MINI-58]
 - Rankings API client: extract array from `{ data: [...] }` wrapper [MINI-58]
+- Dashboard loan-metrics 500 error: rewrite Include+GroupBy LINQ queries with Join [MINI-65]
+- Frontend checkin 422 error: send bookId instead of loanId in request body [MINI-66]
+- Wishlist page not displaying book title/author: property name mismatch with backend [MINI-69]
+- RatingForm visible while book is checked out: hide form when user has active loan [MINI-75]
 - Gamification API client: handle `{ earnedBadges, pendingBadges }` response structure [MINI-58]
 - Docker Compose API healthcheck port (5000 instead of 8080) [MINI-58]
 
