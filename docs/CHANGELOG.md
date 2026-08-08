@@ -10,6 +10,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - `EmailOptions` configuration class for SMTP settings (host, port, TLS, credentials) [MINI-68]
 - Graceful degradation: emails skipped with warning log when SMTP is not configured [MINI-68]
 - Resilient email delivery: failures are logged but don't break the notification flow [MINI-68]
+
+### Fixed
+- Dark mode: primary color too dark (#1E3A5F) causing invisible text/borders on dark surfaces — now uses #90CAF9 in dark mode [MINI-76]
+- Dark mode: "Sign in with Microsoft" button text invisible on login page [MINI-76]
+- Dark mode: sidebar active item indistinguishable from background — now uses alpha-based highlight [MINI-76]
+- Dark mode: "Return" button in loans table invisible/overlapping — improved contrast and added nowrap [MINI-76]
+- Dark mode: buttons in table action columns touching/overlapping — added spacing via theme override [MINI-76]
 - One-rating-per-loan-cycle: ratings are now tied to specific loans, form reappears after new loan cycle [MINI-74]
 - `GET /api/books/{bookId}/can-rate` endpoint — checks if user has an unrated completed loan [MINI-74]
 - `LoanId` (nullable FK) on Rating entity with EF Core migration [MINI-74]
