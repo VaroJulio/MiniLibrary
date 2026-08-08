@@ -181,10 +181,14 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Apply pending EF Core migrations on startup (idempotent — skips if already applied)
+// Skipped when using non-relational providers (e.g., InMemory in integration tests)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MiniLibrary.Infrastructure.Data.AppDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsRelational())
+    {
+        db.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline

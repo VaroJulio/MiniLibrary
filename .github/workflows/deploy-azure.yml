@@ -15,7 +15,7 @@ on:
 env:
   API_IMAGE: ghcr.io/varojulio/minilibrary-api
   CONTAINER_APP_NAME: minilibrary-api
-  RESOURCE_GROUP: minilibrary-demo-rg
+  RESOURCE_GROUP: minilibrary-demo
 
 jobs:
   build-and-deploy-api:
