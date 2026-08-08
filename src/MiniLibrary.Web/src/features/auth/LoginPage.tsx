@@ -52,7 +52,7 @@ export default function LoginPage() {
       } else {
         alert('Dev tokens are disabled on this server.');
       }
-    } catch (err) {
+    } catch {
       alert('Failed to connect to API. Is it running?');
     } finally {
       setDevLoading(false);
