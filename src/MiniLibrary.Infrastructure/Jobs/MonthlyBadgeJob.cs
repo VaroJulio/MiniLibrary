@@ -109,5 +109,9 @@ public sealed class MonthlyBadgeJob : BackgroundService
                 _logger.LogInformation("TopReviewer badge awarded to user {UserId}.", topReview.UserId);
             }
         }
+
+        // Invalidate leaderboard cache after monthly badge awards
+        var cacheService = scope.ServiceProvider.GetRequiredService<ICacheService>();
+        await cacheService.InvalidateAsync("gamification:leaderboard", ct);
     }
 }
