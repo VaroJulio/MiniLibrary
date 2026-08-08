@@ -58,20 +58,30 @@ public sealed class DashboardService : IDashboardService
             .CountAsync(l => l.BorrowedAt >= twelveMonthsAgo, ct);
 
         // Popular categories (by loan count in last 12 months)
+        // Use Join to avoid Include + GroupBy which EF Core cannot translate.
         var popularCategories = await _context.BookLoans
             .Where(l => l.BorrowedAt >= twelveMonthsAgo)
-            .Include(l => l.Book)
-            .GroupBy(l => l.Book.Category)
+            .Join(
+                _context.Books,
+                loan => loan.BookId,
+                book => book.Id,
+                (loan, book) => new { book.Category })
+            .GroupBy(x => x.Category)
             .Select(g => new CategoryMetric(g.Key, g.Count()))
             .OrderByDescending(c => c.LoanCount)
             .Take(10)
             .ToListAsync(ct);
 
         // Top 10 most-borrowed books (all time)
+        // Use Join with simple key selectors for EF Core SQL translation.
         var topBooks = await _context.BookLoans
-            .Include(l => l.Book)
-            .GroupBy(l => new { l.BookId, l.Book.Title, l.Book.Author })
-            .Select(g => new TopBorrowedBook(g.Key.BookId, g.Key.Title, g.Key.Author, g.Count()))
+            .Join(
+                _context.Books,
+                loan => loan.BookId,
+                book => book.Id,
+                (loan, book) => new { book.Id, book.Title, book.Author })
+            .GroupBy(x => new { x.Id, x.Title, x.Author })
+            .Select(g => new TopBorrowedBook(g.Key.Id, g.Key.Title, g.Key.Author, g.Count()))
             .OrderByDescending(b => b.BorrowCount)
             .Take(10)
             .ToListAsync(ct);
