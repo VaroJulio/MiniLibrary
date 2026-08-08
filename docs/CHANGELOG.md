@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Real SMTP email delivery via Gmail App Password (replaces placeholder logging) [MINI-68]
+- `EmailOptions` configuration class for SMTP settings (host, port, TLS, credentials) [MINI-68]
+- Graceful degradation: emails skipped with warning log when SMTP is not configured [MINI-68]
+- Resilient email delivery: failures are logged but don't break the notification flow [MINI-68]
 - One-rating-per-loan-cycle: ratings are now tied to specific loans, form reappears after new loan cycle [MINI-74]
 - `GET /api/books/{bookId}/can-rate` endpoint — checks if user has an unrated completed loan [MINI-74]
 - `LoanId` (nullable FK) on Rating entity with EF Core migration [MINI-74]
