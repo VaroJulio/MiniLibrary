@@ -6,6 +6,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- One-rating-per-loan-cycle: ratings are now tied to specific loans, form reappears after new loan cycle [MINI-74]
+- `GET /api/books/{bookId}/can-rate` endpoint — checks if user has an unrated completed loan [MINI-74]
+- `LoanId` (nullable FK) on Rating entity with EF Core migration [MINI-74]
+- `CheckInRatingDialog` — prompts "Rate Now" or "Maybe Later" after successful book return [MINI-74]
+- BookDetailPage uses `can-rate` API to conditionally show rating form (per loan cycle) [MINI-74]
 - `POST /api/auth/dev-token` endpoint for development without OAuth (controlled by `Authentication:EnableDevTokens`) [MINI-58]
 - Auto-apply EF migrations on startup (`Database.Migrate()`, idempotent) [MINI-58]
 - `prompt=select_account` on Google/Microsoft OAuth (always shows account picker) [MINI-58]
