@@ -32,7 +32,7 @@ export async function searchBooks(
   filters?: SearchFilters,
 ): Promise<PagedResponse<Book>> {
   const params: Record<string, string | number> = { page, pageSize };
-  if (filters?.query) params.query = filters.query;
+  if (filters?.query) params.q = filters.query;
   if (filters?.category) params.category = filters.category;
   if (filters?.status) params.status = filters.status;
   if (filters?.yearFrom) params.yearFrom = filters.yearFrom;
@@ -44,7 +44,7 @@ export async function searchBooks(
 
 export async function semanticSearch(query: string): Promise<SemanticSearchResponse> {
   const { data } = await apiClient.get<SemanticSearchResponse>('/search/semantic', {
-    params: { query },
+    params: { q: query },
   });
   return data;
 }
