@@ -5,9 +5,25 @@ import MicrosoftIcon from '@mui/icons-material/Window';
 export default function LoginPage() {
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
 
-  // For OAuth, redirect directly to the API (not through nginx proxy)
-  // because Google needs to redirect back to the API's exact host:port
-  const authUrl = apiBaseUrl.startsWith('http') ? apiBaseUrl : 'http://localhost:5000';
+  // Determine the auth base URL:
+  // - If VITE_API_BASE_URL is a full URL (Azure), extract the origin
+  // - If relative (/api), use the current API server directly
+  const getAuthUrl = () => {
+    if (apiBaseUrl.startsWith('http')) {
+      // Azure: VITE_API_BASE_URL = "https://minilibrary-api.xxx.azurecontainerapps.io/api"
+      // Extract origin: "https://minilibrary-api.xxx.azurecontainerapps.io"
+      try {
+        const url = new URL(apiBaseUrl);
+        return url.origin;
+      } catch {
+        return 'http://localhost:5000';
+      }
+    }
+    // Local: VITE_API_BASE_URL = "/api" → use localhost:5000 directly
+    return 'http://localhost:5000';
+  };
+
+  const authUrl = getAuthUrl();
 
   const handleGoogleLogin = () => {
     window.location.href = `${authUrl}/api/auth/login/google`;
