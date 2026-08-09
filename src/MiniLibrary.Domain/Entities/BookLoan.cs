@@ -22,6 +22,13 @@ public class BookLoan : Entity
 
     public static BookLoan Create(Guid bookId, Guid userId, DateTime borrowedAt, int loanDurationDays = 14)
     {
+        if (bookId == Guid.Empty)
+            throw new ArgumentException("BookId is required.", nameof(bookId));
+        if (userId == Guid.Empty)
+            throw new ArgumentException("UserId is required.", nameof(userId));
+        if (loanDurationDays <= 0)
+            throw new ArgumentOutOfRangeException(nameof(loanDurationDays), "Loan duration must be a positive number of days.");
+
         return new BookLoan
         {
             BookId = bookId,
