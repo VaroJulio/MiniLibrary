@@ -97,6 +97,11 @@ jobs:
         working-directory: src/MiniLibrary.Web
         run: npm run lint
 
+      - name: Run unit tests
+        if: steps.check_frontend.outputs.exists == 'true'
+        working-directory: src/MiniLibrary.Web
+        run: npm test
+
       - name: Build frontend
         if: steps.check_frontend.outputs.exists == 'true'
         working-directory: src/MiniLibrary.Web
