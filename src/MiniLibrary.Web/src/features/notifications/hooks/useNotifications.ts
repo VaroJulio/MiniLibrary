@@ -5,6 +5,7 @@ export function useNotifications(page: number, pageSize: number) {
   return useQuery({
     queryKey: ['notifications', page, pageSize],
     queryFn: () => fetchNotifications(page, pageSize),
+    staleTime: 10_000, // 10s — notifications are dynamic but don't need instant refresh
     refetchInterval: 60 * 1000, // Poll every 60s for new notifications
   });
 }

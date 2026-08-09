@@ -7,6 +7,7 @@ export function useLoanHistory(page: number, pageSize: number) {
   return useQuery({
     queryKey: [LOAN_HISTORY_KEY, page, pageSize],
     queryFn: () => fetchLoanHistory(page, pageSize),
+    staleTime: 30_000, // 30s — loan status changes on checkout/checkin (invalidated by mutations)
   });
 }
 
@@ -38,6 +39,7 @@ export function useHasReadBook(bookId: string | undefined) {
   const { data } = useQuery({
     queryKey: [LOAN_HISTORY_KEY, 1, 100],
     queryFn: () => fetchLoanHistory(1, 100),
+    staleTime: 30_000,
   });
 
   if (!bookId || !data) return false;
