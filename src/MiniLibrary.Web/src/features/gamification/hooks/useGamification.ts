@@ -5,6 +5,7 @@ export function useMyBadges() {
   return useQuery<UserBadgesResponse>({
     queryKey: ['my-badges'],
     queryFn: fetchMyBadges,
+    staleTime: 5 * 60_000, // 5 min — badges change only on milestone events
   });
 }
 
