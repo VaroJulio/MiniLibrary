@@ -41,9 +41,23 @@ public class BookLoan : Entity
 
     public bool IsActive => ReturnedAt is null;
 
-    public bool IsOverdue => IsActive && DateTime.UtcNow > DueDate;
+    /// <summary>
+    /// Determines if the loan is overdue at a specific point in time.
+    /// Use this method in application logic and tests for deterministic behavior.
+    /// </summary>
+    public bool IsOverdueAt(DateTime utcNow) => IsActive && utcNow > DueDate;
 
-    public int DaysUntilDue => IsActive ? (int)(DueDate - DateTime.UtcNow).TotalDays : 0;
+    /// <summary>
+    /// Calculates the number of days until the loan is due, relative to a specific point in time.
+    /// Returns 0 if the loan has been returned. Returns negative values if overdue.
+    /// </summary>
+    public int DaysUntilDueAt(DateTime utcNow) => IsActive ? (int)(DueDate - utcNow).TotalDays : 0;
+
+    /// <summary>Convenience property using current UTC time. Prefer IsOverdueAt() in testable code.</summary>
+    public bool IsOverdue => IsOverdueAt(DateTime.UtcNow);
+
+    /// <summary>Convenience property using current UTC time. Prefer DaysUntilDueAt() in testable code.</summary>
+    public int DaysUntilDue => DaysUntilDueAt(DateTime.UtcNow);
 
     public void Return(DateTime returnedAt)
     {
