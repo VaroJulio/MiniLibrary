@@ -123,11 +123,6 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
         external: true
         targetPort: 5000
         transport: 'http'
-        corsPolicy: {
-          allowedOrigins: ['*']
-          allowedMethods: ['*']
-          allowedHeaders: ['*']
-        }
       }
       registries: []
     }

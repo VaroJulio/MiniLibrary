@@ -23,6 +23,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Configure CORS — allow the frontend origin with credentials (HttpOnly cookies)
+var frontendUrl = builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins(frontendUrl.TrimEnd('/'))
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // HTTP context accessor and current user service
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
@@ -236,6 +249,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors();
 
 app.UseAuthentication();
 app.UseMiddleware<MiniLibrary.API.Middleware.CsrfProtectionMiddleware>();
