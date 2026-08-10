@@ -20,7 +20,7 @@ public sealed class LoanRepository : ILoanRepository
 
     public async Task<int> GetActiveLoanCountAsync(Guid userId, CancellationToken ct)
     {
-        return await _context.BookLoans
+        return await _context.BookLoans.AsNoTracking()
             .CountAsync(l => l.UserId == userId && l.ReturnedAt == null, ct);
     }
 
@@ -38,7 +38,7 @@ public sealed class LoanRepository : ILoanRepository
 
     public async Task<PagedResult<BookLoan>> GetUserHistoryAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var baseQuery = _context.BookLoans.Where(l => l.UserId == userId);
+        var baseQuery = _context.BookLoans.AsNoTracking().Where(l => l.UserId == userId);
 
         var totalCount = await baseQuery.CountAsync(ct);
 
@@ -56,7 +56,7 @@ public sealed class LoanRepository : ILoanRepository
     {
         var now = DateTime.UtcNow;
 
-        var baseQuery = _context.BookLoans
+        var baseQuery = _context.BookLoans.AsNoTracking()
             .Where(l => l.ReturnedAt == null && l.DueDate < now);
 
         var totalCount = await baseQuery.CountAsync(ct);
@@ -74,13 +74,13 @@ public sealed class LoanRepository : ILoanRepository
 
     public async Task<bool> HasCompletedLoanAsync(Guid bookId, Guid userId, CancellationToken ct)
     {
-        return await _context.BookLoans
+        return await _context.BookLoans.AsNoTracking()
             .AnyAsync(l => l.BookId == bookId && l.UserId == userId && l.ReturnedAt != null, ct);
     }
 
     public async Task<BookLoan?> GetMostRecentCompletedLoanAsync(Guid bookId, Guid userId, CancellationToken ct)
     {
-        return await _context.BookLoans
+        return await _context.BookLoans.AsNoTracking()
             .Where(l => l.BookId == bookId && l.UserId == userId && l.ReturnedAt != null)
             .OrderByDescending(l => l.ReturnedAt)
             .FirstOrDefaultAsync(ct);
