@@ -40,12 +40,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchCurrentUser = useCallback(async () => {
     try {
+      // Use a direct request without the 401 interceptor redirect
+      // to avoid infinite loops when not authenticated on the login page
       const { data } = await apiClient.get<{
         id: string;
         email: string;
         fullName: string;
         role: string;
-      }>('/auth/me');
+      }>('/auth/me', { _skipAuthRedirect: true } as never);
       setState({
         user: {
           id: data.id,

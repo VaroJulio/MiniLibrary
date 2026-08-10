@@ -71,7 +71,15 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't try to refresh if the failing request was the refresh itself
       if (originalRequest.url?.includes('/auth/refresh')) {
-        window.location.href = '/login';
+        // Only redirect if not explicitly skipping auth redirect
+        if (!originalRequest._skipAuthRedirect) {
+          window.location.href = '/login';
+        }
+        return Promise.reject(toApiError(error));
+      }
+
+      // Skip the redirect-on-failure logic for auth state checks (e.g., /auth/me on mount)
+      if (originalRequest._skipAuthRedirect) {
         return Promise.reject(toApiError(error));
       }
 
