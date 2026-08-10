@@ -12,6 +12,7 @@ public class CheckOutBookCommandHandlerTests
     private readonly Mock<IBookRepository> _bookRepositoryMock;
     private readonly Mock<ILoanRepository> _loanRepositoryMock;
     private readonly Mock<IWishlistRepository> _wishlistRepositoryMock;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly CheckOutBookCommandHandler _handler;
 
     public CheckOutBookCommandHandlerTests()
@@ -19,10 +20,12 @@ public class CheckOutBookCommandHandlerTests
         _bookRepositoryMock = new Mock<IBookRepository>();
         _loanRepositoryMock = new Mock<ILoanRepository>();
         _wishlistRepositoryMock = new Mock<IWishlistRepository>();
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _handler = new CheckOutBookCommandHandler(
             _bookRepositoryMock.Object,
             _loanRepositoryMock.Object,
-            _wishlistRepositoryMock.Object);
+            _wishlistRepositoryMock.Object,
+            _mockUnitOfWork.Object);
     }
 
     [Fact]

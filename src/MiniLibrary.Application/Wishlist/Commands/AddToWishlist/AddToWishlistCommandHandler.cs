@@ -12,14 +12,17 @@ public sealed class AddToWishlistCommandHandler : IRequestHandler<AddToWishlistC
 {
     private readonly IWishlistRepository _wishlistRepository;
     private readonly IBookRepository _bookRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private const int MaxWishlistSize = 20;
 
     public AddToWishlistCommandHandler(
         IWishlistRepository wishlistRepository,
-        IBookRepository bookRepository)
+        IBookRepository bookRepository,
+        IUnitOfWork unitOfWork)
     {
         _wishlistRepository = wishlistRepository;
         _bookRepository = bookRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(AddToWishlistCommand request, CancellationToken cancellationToken)
@@ -41,6 +44,7 @@ public sealed class AddToWishlistCommandHandler : IRequestHandler<AddToWishlistC
 
         var entry = WishlistEntry.Create(request.BookId, request.UserId);
         await _wishlistRepository.AddAsync(entry, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return Unit.Value;
     }

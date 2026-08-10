@@ -14,13 +14,16 @@ public sealed class DeleteRatingCommandHandler : IRequestHandler<DeleteRatingCom
 {
     private readonly IRatingRepository _ratingRepository;
     private readonly IBookRepository _bookRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public DeleteRatingCommandHandler(
         IRatingRepository ratingRepository,
-        IBookRepository bookRepository)
+        IBookRepository bookRepository,
+        IUnitOfWork unitOfWork)
     {
         _ratingRepository = ratingRepository;
         _bookRepository = bookRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(DeleteRatingCommand request, CancellationToken cancellationToken)
@@ -44,6 +47,8 @@ public sealed class DeleteRatingCommandHandler : IRequestHandler<DeleteRatingCom
             book.UpdateRatingStats(average, count);
             await _bookRepository.UpdateAsync(book, cancellationToken);
         }
+
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return Unit.Value;
     }

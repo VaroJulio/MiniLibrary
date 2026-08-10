@@ -9,13 +9,15 @@ public class DeleteBookCommandHandlerTests
 {
     private readonly Mock<IBookRepository> _bookRepositoryMock;
     private readonly Mock<ILoanRepository> _loanRepositoryMock;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly DeleteBookCommandHandler _handler;
 
     public DeleteBookCommandHandlerTests()
     {
         _bookRepositoryMock = new Mock<IBookRepository>();
         _loanRepositoryMock = new Mock<ILoanRepository>();
-        _handler = new DeleteBookCommandHandler(_bookRepositoryMock.Object, _loanRepositoryMock.Object);
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
+        _handler = new DeleteBookCommandHandler(_bookRepositoryMock.Object, _loanRepositoryMock.Object, _mockUnitOfWork.Object);
     }
 
     [Fact]

@@ -18,15 +18,18 @@ public class CheckInBookCommandHandler : IRequestHandler<CheckInBookCommand, Loa
     private readonly IBookRepository _bookRepository;
     private readonly ILoanRepository _loanRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CheckInBookCommandHandler(
         IBookRepository bookRepository,
         ILoanRepository loanRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IUnitOfWork unitOfWork)
     {
         _bookRepository = bookRepository;
         _loanRepository = loanRepository;
         _currentUserService = currentUserService;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<LoanResponse> Handle(CheckInBookCommand request, CancellationToken cancellationToken)
@@ -77,9 +80,10 @@ public class CheckInBookCommandHandler : IRequestHandler<CheckInBookCommand, Loa
         // 6. Change book status to Available
         book.MakeAvailable();
 
-        // 7. Persist changes
+        // 7. Persist changes atomically
         await _loanRepository.UpdateAsync(loan, cancellationToken);
         await _bookRepository.UpdateAsync(book, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         // 8. Return the loan response
         return new LoanResponse(

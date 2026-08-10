@@ -25,19 +25,22 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
     private readonly IWebHostEnvironment _environment;
+    private readonly IUnitOfWork _unitOfWork;
 
     public AuthController(
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
         IConfiguration configuration,
         ILogger<AuthController> logger,
-        IWebHostEnvironment environment)
+        IWebHostEnvironment environment,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _jwtTokenService = jwtTokenService;
         _configuration = configuration;
         _logger = logger;
         _environment = environment;
+        _unitOfWork = unitOfWork;
     }
 
     /// <summary>
@@ -122,6 +125,7 @@ public class AuthController : ControllerBase
                 role: UserRole.Member);
 
             await _userRepository.AddAsync(user, ct);
+            await _unitOfWork.CommitAsync(ct);
         }
 
         // Generate tokens and set as HttpOnly cookies
@@ -260,6 +264,7 @@ public class AuthController : ControllerBase
             var parsedRole = Enum.Parse<UserRole>(role);
             user = DomainUser.Create(email, name, externalId, "DevToken", parsedRole);
             await _userRepository.AddAsync(user, ct);
+            await _unitOfWork.CommitAsync(ct);
         }
 
         // Set auth cookies (tokens never returned in response body)

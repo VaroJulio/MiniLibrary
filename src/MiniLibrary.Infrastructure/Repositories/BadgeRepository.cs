@@ -39,6 +39,5 @@ public sealed class BadgeRepository : IBadgeRepository
     public async Task AddAsync(Badge badge, CancellationToken ct)
     {
         await _context.Badges.AddAsync(badge, ct);
-        await _context.SaveChangesAsync(ct);
     }
 }

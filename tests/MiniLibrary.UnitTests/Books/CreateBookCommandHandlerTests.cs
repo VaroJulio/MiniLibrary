@@ -12,6 +12,7 @@ public class CreateBookCommandHandlerTests
 {
     private readonly Mock<IBookRepository> _bookRepositoryMock;
     private readonly IMapper _mapper;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly CreateBookCommandHandler _handler;
 
     public CreateBookCommandHandlerTests()
@@ -19,7 +20,8 @@ public class CreateBookCommandHandlerTests
         _bookRepositoryMock = new Mock<IBookRepository>();
         var config = new MapperConfiguration(cfg => cfg.AddProfile<BookMappingProfile>());
         _mapper = config.CreateMapper();
-        _handler = new CreateBookCommandHandler(_bookRepositoryMock.Object, _mapper);
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
+        _handler = new CreateBookCommandHandler(_bookRepositoryMock.Object, _mapper, _mockUnitOfWork.Object);
     }
 
     [Fact]

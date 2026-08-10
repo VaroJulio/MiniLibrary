@@ -90,19 +90,18 @@ public class BookRepository : IBookRepository
     public async Task AddAsync(Book book, CancellationToken ct)
     {
         await _context.Books.AddAsync(book, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(Book book, CancellationToken ct)
     {
         _context.Books.Update(book);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(Book book, CancellationToken ct)
     {
         book.Delete();
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 
     private static IQueryable<Book> ApplySorting(IQueryable<Book> query, string? sortBy, bool descending)
