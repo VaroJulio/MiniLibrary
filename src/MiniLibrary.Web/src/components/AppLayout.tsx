@@ -35,9 +35,10 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useThemeMode } from '@/theme/ThemeContext';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { useNewNotificationDetector } from '@/features/notifications/hooks/useNewNotificationDetector';
 
 const DRAWER_WIDTH = 260;
 
@@ -75,6 +76,7 @@ export function AppLayout() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const { mode, toggleTheme } = useThemeMode();
+  const { unreadCount, animate } = useNewNotificationDetector();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -181,12 +183,11 @@ export function AppLayout() {
           <IconButton onClick={toggleTheme} aria-label="toggle theme">
             {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
-          <IconButton
-            aria-label="notifications"
+          <NotificationBell
             onClick={() => navigate('/notifications')}
-          >
-            <NotificationsIcon />
-          </IconButton>
+            unreadCount={unreadCount}
+            animate={animate}
+          />
           <IconButton onClick={handleUserMenuOpen} aria-label="user menu">
             <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
               {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}

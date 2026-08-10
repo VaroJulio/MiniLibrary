@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- Notification bell sound: plays a synthesized two-tone alert (Web Audio API) when new notifications arrive [MINI-93]
+- Bell shake animation: icon shakes and highlights with NotificationsActive icon on new notifications [MINI-93]
+- Sound mute toggle: users can mute/unmute notification sounds from the Notifications page (persisted in localStorage) [MINI-93]
+- Sound does not play on initial page load — only triggers when unread count increases between polls [MINI-93]
 - Real SMTP email delivery via Gmail App Password (replaces placeholder logging) [MINI-68]
 - `EmailOptions` configuration class for SMTP settings (host, port, TLS, credentials) [MINI-68]
 - Graceful degradation: emails skipped with warning log when SMTP is not configured [MINI-68]
