@@ -92,7 +92,7 @@ public class AuthController : ControllerBase
         if (!authenticateResult.Succeeded || authenticateResult.Principal is null)
         {
             _logger.LogWarning("Authentication failed for provider {Provider}", provider);
-            var frontendUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+            var frontendUrl = GetFrontendUrl();
             return Redirect($"{frontendUrl}/login?error=auth_failed");
         }
 
@@ -104,7 +104,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(externalId))
         {
             _logger.LogWarning("External ID not found in claims for provider {Provider}", provider);
-            var frontendUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+            var frontendUrl = GetFrontendUrl();
             return Redirect($"{frontendUrl}/login?error=no_identity");
         }
 
@@ -132,7 +132,7 @@ public class AuthController : ControllerBase
         SetAuthCookiesForUser(user);
 
         // Redirect to frontend — no tokens in URL
-        var redirectUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+        var redirectUrl = GetFrontendUrl();
         return Redirect($"{redirectUrl}/auth/callback");
     }
 
@@ -287,6 +287,17 @@ public class AuthController : ControllerBase
         _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
 
         CookieTokenService.SetAuthCookies(Response, accessToken, refreshToken, _environment.IsDevelopment());
+    }
+
+    /// <summary>
+    /// Gets the primary frontend URL (first entry if comma-separated list).
+    /// </summary>
+    private string GetFrontendUrl()
+    {
+        var configured = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+        // Support comma-separated list — use first entry for redirects
+        var firstUrl = configured.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
+        return firstUrl?.TrimEnd('/') ?? "http://localhost:3000";
     }
 }
 

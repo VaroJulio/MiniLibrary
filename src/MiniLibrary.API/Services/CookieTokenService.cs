@@ -19,11 +19,16 @@ public static class CookieTokenService
     /// </summary>
     public static void SetAuthCookies(HttpResponse response, string accessToken, string refreshToken, bool isDevelopment)
     {
+        // In production with cross-origin setup (different domains for frontend/API),
+        // SameSite must be None to allow cookies to be sent cross-origin.
+        // This is safe because we have CSRF double-submit cookie protection.
+        var sameSiteMode = isDevelopment ? SameSiteMode.Strict : SameSiteMode.None;
+
         var secureCookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Secure = !isDevelopment, // Allow non-HTTPS in development
-            SameSite = SameSiteMode.Strict,
+            SameSite = sameSiteMode,
             Path = "/api",
             MaxAge = TimeSpan.FromHours(1), // Match access token expiry
         };
@@ -32,7 +37,7 @@ public static class CookieTokenService
         {
             HttpOnly = true,
             Secure = !isDevelopment,
-            SameSite = SameSiteMode.Strict,
+            SameSite = sameSiteMode,
             Path = "/api/auth/refresh", // Scoped to refresh endpoint only
             MaxAge = TimeSpan.FromDays(7), // Match refresh token expiry
         };
@@ -43,7 +48,7 @@ public static class CookieTokenService
         {
             HttpOnly = false, // Must be readable by JavaScript
             Secure = !isDevelopment,
-            SameSite = SameSiteMode.Strict,
+            SameSite = sameSiteMode,
             Path = "/",
             MaxAge = TimeSpan.FromHours(1),
         };
