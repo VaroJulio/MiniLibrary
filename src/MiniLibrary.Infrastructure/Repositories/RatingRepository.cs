@@ -124,18 +124,17 @@ public sealed class RatingRepository : IRatingRepository
     public async Task AddAsync(Rating rating, CancellationToken ct)
     {
         await _context.Ratings.AddAsync(rating, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(Rating rating, CancellationToken ct)
     {
         _context.Ratings.Update(rating);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(Rating rating, CancellationToken ct)
     {
         _context.Ratings.Remove(rating);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }

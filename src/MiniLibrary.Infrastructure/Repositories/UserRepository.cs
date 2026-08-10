@@ -56,12 +56,11 @@ public sealed class UserRepository : IUserRepository
     public async Task AddAsync(User user, CancellationToken ct)
     {
         await _context.Users.AddAsync(user, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(User user, CancellationToken ct)
     {
         _context.Users.Update(user);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }

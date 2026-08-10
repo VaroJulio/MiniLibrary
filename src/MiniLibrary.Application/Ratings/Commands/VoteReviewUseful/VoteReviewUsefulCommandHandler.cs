@@ -17,13 +17,16 @@ public sealed class VoteReviewUsefulCommandHandler : IRequestHandler<VoteReviewU
 {
     private readonly IRatingRepository _ratingRepository;
     private readonly IReviewVoteRepository _reviewVoteRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public VoteReviewUsefulCommandHandler(
         IRatingRepository ratingRepository,
-        IReviewVoteRepository reviewVoteRepository)
+        IReviewVoteRepository reviewVoteRepository,
+        IUnitOfWork unitOfWork)
     {
         _ratingRepository = ratingRepository;
         _reviewVoteRepository = reviewVoteRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(VoteReviewUsefulCommand request, CancellationToken cancellationToken)
@@ -54,6 +57,9 @@ public sealed class VoteReviewUsefulCommandHandler : IRequestHandler<VoteReviewU
 
         rating.IncrementUsefulVotes();
         await _ratingRepository.UpdateAsync(rating, cancellationToken);
+
+        // Commit atomically
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return Unit.Value;
     }

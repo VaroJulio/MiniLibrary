@@ -53,7 +53,7 @@ public class LoanPreconditionProperties
                     .ReturnsAsync((WishlistEntry?)null);
 
                 var handler = new CheckOutBookCommandHandler(
-                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object);
+                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 // Act
                 var result = handler.Handle(new CheckOutBookCommand(bookId, userId), CancellationToken.None)
@@ -93,7 +93,7 @@ public class LoanPreconditionProperties
                 var mockWishlistRepo = new Mock<IWishlistRepository>();
 
                 var handler = new CheckOutBookCommandHandler(
-                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object);
+                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 // Act & Assert: should throw ConflictException
                 try
@@ -138,7 +138,7 @@ public class LoanPreconditionProperties
                 var mockWishlistRepo = new Mock<IWishlistRepository>();
 
                 var handler = new CheckOutBookCommandHandler(
-                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object);
+                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 // Act & Assert: should throw ConflictException
                 try
@@ -192,7 +192,7 @@ public class LoanPreconditionProperties
                     .ReturnsAsync((WishlistEntry?)null);
 
                 var handler = new CheckOutBookCommandHandler(
-                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object);
+                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 var shouldSucceed = isAvailable && activeLoanCount < 5;
 
@@ -276,7 +276,7 @@ public class LoanPreconditionProperties
                     .ReturnsAsync((WishlistEntry?)null);
 
                 var handler = new CheckOutBookCommandHandler(
-                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object);
+                    mockBookRepo.Object, mockLoanRepo.Object, mockWishlistRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 var result = handler.Handle(new CheckOutBookCommand(bookId, userId), CancellationToken.None)
                     .GetAwaiter().GetResult();

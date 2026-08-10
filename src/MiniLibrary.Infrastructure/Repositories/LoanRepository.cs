@@ -89,12 +89,11 @@ public sealed class LoanRepository : ILoanRepository
     public async Task AddAsync(BookLoan loan, CancellationToken ct)
     {
         await _context.BookLoans.AddAsync(loan, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(BookLoan loan, CancellationToken ct)
     {
         _context.BookLoans.Update(loan);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }

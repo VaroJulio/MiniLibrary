@@ -48,7 +48,7 @@ public class WishlistSizeLimitProperties
                 mockWishlist.Setup(r => r.GetUserWishlistCountAsync(userId, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(currentCount);
 
-                var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object);
+                var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object, new Mock<IUnitOfWork>().Object);
                 var command = new AddToWishlistCommand(bookId, userId);
 
                 try
@@ -95,7 +95,7 @@ public class WishlistSizeLimitProperties
                 mockWishlist.Setup(r => r.AddAsync(It.IsAny<WishlistEntry>(), It.IsAny<CancellationToken>()))
                     .Returns(Task.CompletedTask);
 
-                var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object);
+                var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object, new Mock<IUnitOfWork>().Object);
                 var command = new AddToWishlistCommand(bookId, userId);
 
                 try
@@ -137,7 +137,7 @@ public class WishlistSizeLimitProperties
                 mockWishlist.Setup(r => r.GetEntryAsync(userId, bookId, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(WishlistEntry.Create(bookId, userId));
 
-                var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object);
+                var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object, new Mock<IUnitOfWork>().Object);
                 var command = new AddToWishlistCommand(bookId, userId);
 
                 try
@@ -190,7 +190,7 @@ public class WishlistSizeLimitProperties
                     mockWishlist.Setup(r => r.AddAsync(It.IsAny<WishlistEntry>(), It.IsAny<CancellationToken>()))
                         .Returns(Task.CompletedTask);
 
-                    var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object);
+                    var handler = new AddToWishlistCommandHandler(mockWishlist.Object, mockBook.Object, new Mock<IUnitOfWork>().Object);
                     var command = new AddToWishlistCommand(bookId, userId);
 
                     try

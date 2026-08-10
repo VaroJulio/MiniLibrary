@@ -20,6 +20,7 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
     private readonly INotificationService _notificationService;
     private readonly IUserRepository _userRepository;
     private readonly ICacheService _cacheService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<EvaluateBadgesCommandHandler> _logger;
 
     private const string LeaderboardCacheKey = "gamification:leaderboard";
@@ -31,6 +32,7 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
         INotificationService notificationService,
         IUserRepository userRepository,
         ICacheService cacheService,
+        IUnitOfWork unitOfWork,
         ILogger<EvaluateBadgesCommandHandler> logger)
     {
         _badgeRepository = badgeRepository;
@@ -39,6 +41,7 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
         _notificationService = notificationService;
         _userRepository = userRepository;
         _cacheService = cacheService;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -133,6 +136,7 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
         // Invalidate leaderboard cache if any badges were awarded
         if (badgesToAward.Count > 0)
         {
+            await _unitOfWork.CommitAsync(cancellationToken);
             await _cacheService.InvalidateAsync(LeaderboardCacheKey, cancellationToken);
         }
 

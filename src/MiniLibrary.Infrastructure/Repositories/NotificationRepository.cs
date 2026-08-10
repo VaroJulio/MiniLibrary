@@ -48,12 +48,11 @@ public sealed class NotificationRepository : INotificationRepository
     public async Task AddAsync(Notification notification, CancellationToken ct)
     {
         await _context.Notifications.AddAsync(notification, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(Notification notification, CancellationToken ct)
     {
         _context.Notifications.Update(notification);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }

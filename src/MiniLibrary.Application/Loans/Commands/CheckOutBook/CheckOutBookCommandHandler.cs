@@ -12,21 +12,25 @@ namespace MiniLibrary.Application.Loans.Commands.CheckOutBook;
 /// Handles the check-out of a book for a member.
 /// Verifies preconditions, creates the loan, updates book status,
 /// handles optimistic concurrency, and auto-removes from wishlist.
+/// All changes are committed atomically via IUnitOfWork.
 /// </summary>
 public class CheckOutBookCommandHandler : IRequestHandler<CheckOutBookCommand, LoanResponse>
 {
     private readonly IBookRepository _bookRepository;
     private readonly ILoanRepository _loanRepository;
     private readonly IWishlistRepository _wishlistRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CheckOutBookCommandHandler(
         IBookRepository bookRepository,
         ILoanRepository loanRepository,
-        IWishlistRepository wishlistRepository)
+        IWishlistRepository wishlistRepository,
+        IUnitOfWork unitOfWork)
     {
         _bookRepository = bookRepository;
         _loanRepository = loanRepository;
         _wishlistRepository = wishlistRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<LoanResponse> Handle(CheckOutBookCommand request, CancellationToken cancellationToken)
@@ -55,17 +59,9 @@ public class CheckOutBookCommandHandler : IRequestHandler<CheckOutBookCommand, L
         var now = DateTime.UtcNow;
         var loan = BookLoan.Create(request.BookId, request.UserId, now);
 
-        // 6. Persist changes with optimistic concurrency handling
-        try
-        {
-            await _bookRepository.UpdateAsync(book, cancellationToken);
-            await _loanRepository.AddAsync(loan, cancellationToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            throw new ConflictException(
-                "This book was checked out by another user. Please try again.");
-        }
+        // 6. Stage changes (no SaveChanges yet)
+        await _bookRepository.UpdateAsync(book, cancellationToken);
+        await _loanRepository.AddAsync(loan, cancellationToken);
 
         // 7. If book is in user's wishlist, auto-remove it (Req 18.9)
         var wishlistEntry = await _wishlistRepository.GetEntryAsync(request.UserId, request.BookId, cancellationToken);
@@ -74,7 +70,18 @@ public class CheckOutBookCommandHandler : IRequestHandler<CheckOutBookCommand, L
             await _wishlistRepository.DeleteAsync(wishlistEntry, cancellationToken);
         }
 
-        // 8. Return the loan response
+        // 8. Commit all changes atomically (single SaveChanges)
+        try
+        {
+            await _unitOfWork.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException(
+                "This book was checked out by another user. Please try again.");
+        }
+
+        // 9. Return the loan response
         return new LoanResponse(
             Id: loan.Id,
             BookId: loan.BookId,

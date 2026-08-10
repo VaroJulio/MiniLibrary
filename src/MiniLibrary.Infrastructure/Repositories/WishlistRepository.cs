@@ -60,12 +60,11 @@ public sealed class WishlistRepository : IWishlistRepository
     public async Task AddAsync(WishlistEntry entry, CancellationToken ct)
     {
         await _context.WishlistEntries.AddAsync(entry, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task DeleteAsync(WishlistEntry entry, CancellationToken ct)
     {
         _context.WishlistEntries.Remove(entry);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }
