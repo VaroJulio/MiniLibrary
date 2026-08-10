@@ -19,19 +19,18 @@ public sealed class BookEmbeddingRepository : IBookEmbeddingRepository
 
     public async Task<BookEmbedding?> GetByBookIdAsync(Guid bookId, CancellationToken ct)
     {
-        return await _context.BookEmbeddings
+        return await _context.BookEmbeddings.AsNoTracking()
             .FirstOrDefaultAsync(e => e.BookId == bookId, ct);
     }
 
     public async Task AddAsync(BookEmbedding embedding, CancellationToken ct)
     {
         await _context.BookEmbeddings.AddAsync(embedding, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(BookEmbedding embedding, CancellationToken ct)
     {
         _context.BookEmbeddings.Update(embedding);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }

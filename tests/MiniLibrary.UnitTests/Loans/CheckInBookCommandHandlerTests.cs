@@ -12,6 +12,7 @@ public class CheckInBookCommandHandlerTests
     private readonly Mock<IBookRepository> _bookRepositoryMock;
     private readonly Mock<ILoanRepository> _loanRepositoryMock;
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly CheckInBookCommandHandler _handler;
 
     public CheckInBookCommandHandlerTests()
@@ -19,10 +20,12 @@ public class CheckInBookCommandHandlerTests
         _bookRepositoryMock = new Mock<IBookRepository>();
         _loanRepositoryMock = new Mock<ILoanRepository>();
         _currentUserServiceMock = new Mock<ICurrentUserService>();
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
         _handler = new CheckInBookCommandHandler(
             _bookRepositoryMock.Object,
             _loanRepositoryMock.Object,
-            _currentUserServiceMock.Object);
+            _currentUserServiceMock.Object,
+            _mockUnitOfWork.Object);
     }
 
     [Fact]

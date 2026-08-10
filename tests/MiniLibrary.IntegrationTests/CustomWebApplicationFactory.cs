@@ -7,18 +7,38 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using MiniLibrary.Infrastructure.Data;
+using Testcontainers.MsSql;
 
 namespace MiniLibrary.IntegrationTests;
 
 /// <summary>
-/// Custom WebApplicationFactory that uses an in-memory database for integration tests.
-/// Avoids requiring a real SQL Server/TestContainers for fast CI feedback.
+/// Custom WebApplicationFactory that uses a real SQL Server container via TestContainers.
+/// This ensures integration tests validate FK constraints, unique indexes, SQL collation,
+/// concurrency tokens, and EF Core migrations against real SQL Server behavior.
+/// 
+/// The container is started once and shared across all tests using IAsyncLifetime.
+/// Each test class gets the same database (migrations applied once on startup).
 /// </summary>
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private const string TestJwtSecret = "IntegrationTestSecretKeyThatIsLongEnoughForHS256!";
     private const string TestJwtIssuer = "MiniLibrary";
     private const string TestJwtAudience = "MiniLibrary";
+
+    private readonly MsSqlContainer _sqlContainer = new MsSqlBuilder()
+        .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+        .Build();
+
+    public async Task InitializeAsync()
+    {
+        await _sqlContainer.StartAsync();
+    }
+
+    public new async Task DisposeAsync()
+    {
+        await _sqlContainer.DisposeAsync();
+        await base.DisposeAsync();
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -40,10 +60,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             if (interceptorDescriptor != null) services.Remove(interceptorDescriptor);
             services.AddScoped<DomainEventDispatcher>();
 
-            // Use in-memory database for tests
+            // Use real SQL Server from TestContainers
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseInMemoryDatabase("MiniLibraryTestDb");
+                options.UseSqlServer(_sqlContainer.GetConnectionString());
             });
         });
 

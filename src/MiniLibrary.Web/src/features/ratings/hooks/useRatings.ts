@@ -15,6 +15,7 @@ export function useBookRatings(bookId: string, page: number, pageSize: number) {
     queryKey: ['book-ratings', bookId, page, pageSize],
     queryFn: () => fetchBookRatings(bookId, page, pageSize),
     enabled: !!bookId,
+    staleTime: 30_000, // 30s — ratings change on new review (invalidated by mutations)
   });
 }
 
@@ -22,6 +23,7 @@ export function useMyRatings(page: number, pageSize: number) {
   return useQuery({
     queryKey: ['my-ratings', page, pageSize],
     queryFn: () => fetchMyRatings(page, pageSize),
+    staleTime: 30_000,
   });
 }
 
@@ -29,6 +31,7 @@ export function useRecentRatings(page: number, pageSize: number) {
   return useQuery({
     queryKey: ['recent-ratings', page, pageSize],
     queryFn: () => fetchRecentRatings(page, pageSize),
+    staleTime: 30_000,
   });
 }
 
@@ -37,6 +40,7 @@ export function useCanRate(bookId: string | undefined) {
     queryKey: ['can-rate', bookId],
     queryFn: () => fetchCanRate(bookId!),
     enabled: !!bookId,
+    staleTime: 60_000, // 60s — eligibility only changes on loan return
   });
 }
 

@@ -17,17 +17,20 @@ public sealed class GenerateEmbeddingOnBookUpdatedHandler : INotificationHandler
     private readonly IBookRepository _bookRepository;
     private readonly IEmbeddingService _embeddingService;
     private readonly IBookEmbeddingRepository _bookEmbeddingRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<GenerateEmbeddingOnBookUpdatedHandler> _logger;
 
     public GenerateEmbeddingOnBookUpdatedHandler(
         IBookRepository bookRepository,
         IEmbeddingService embeddingService,
         IBookEmbeddingRepository bookEmbeddingRepository,
+        IUnitOfWork unitOfWork,
         ILogger<GenerateEmbeddingOnBookUpdatedHandler> logger)
     {
         _bookRepository = bookRepository;
         _embeddingService = embeddingService;
         _bookEmbeddingRepository = bookEmbeddingRepository;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -67,6 +70,8 @@ public sealed class GenerateEmbeddingOnBookUpdatedHandler : INotificationHandler
             }
 
             _logger.LogInformation("Embedding regenerated and stored for book {BookId}.", notification.BookId);
+
+            await _unitOfWork.CommitAsync(cancellationToken);
         }
         catch (Exception ex)
         {

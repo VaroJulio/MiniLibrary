@@ -45,6 +45,9 @@ public static class DependencyInjection
         services.AddHostedService<Jobs.LoanExpirationJob>();
         services.AddHostedService<Jobs.MonthlyBadgeJob>();
 
+        // Unit of Work
+        services.AddScoped<IUnitOfWork, MiniLibrary.Infrastructure.Data.UnitOfWork>();
+
         // Repositories
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<ILoanRepository, LoanRepository>();

@@ -20,17 +20,20 @@ public sealed class CreateOrUpdateRatingCommandHandler
     private readonly IBookRepository _bookRepository;
     private readonly ILoanRepository _loanRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateOrUpdateRatingCommandHandler(
         IRatingRepository ratingRepository,
         IBookRepository bookRepository,
         ILoanRepository loanRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IUnitOfWork unitOfWork)
     {
         _ratingRepository = ratingRepository;
         _bookRepository = bookRepository;
         _loanRepository = loanRepository;
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<RatingResponse> Handle(
@@ -76,6 +79,9 @@ public sealed class CreateOrUpdateRatingCommandHandler
             request.BookId, cancellationToken);
         book.UpdateRatingStats(average, count);
         await _bookRepository.UpdateAsync(book, cancellationToken);
+
+        // Commit all changes atomically
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         // Get user name for response
         var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);

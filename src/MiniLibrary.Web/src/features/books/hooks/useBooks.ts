@@ -9,6 +9,7 @@ export function useBooks(page: number, pageSize: number, filters?: BookFilters) 
   return useQuery({
     queryKey: [BOOKS_KEY, page, pageSize, filters],
     queryFn: () => fetchBooks(page, pageSize, filters),
+    staleTime: 30_000, // 30s — book list changes infrequently
   });
 }
 
@@ -17,6 +18,7 @@ export function useBookDetail(id: string | undefined) {
     queryKey: [BOOK_DETAIL_KEY, id],
     queryFn: () => fetchBookById(id!),
     enabled: !!id,
+    staleTime: 60_000, // 60s — individual book details are fairly stable
   });
 }
 

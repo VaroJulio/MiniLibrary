@@ -313,7 +313,7 @@ public class BookValidationProperties
                 mockLoanRepo.Setup(r => r.GetActiveLoanByBookAsync(bookId, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(activeLoan);
 
-                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object);
+                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 // Act & Assert
                 try
@@ -353,7 +353,7 @@ public class BookValidationProperties
                 mockLoanRepo.Setup(r => r.GetActiveLoanByBookAsync(bookId, It.IsAny<CancellationToken>()))
                     .ReturnsAsync((BookLoan?)null);
 
-                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object);
+                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 // Act
                 handler.Handle(new DeleteBookCommand(bookId), CancellationToken.None).GetAwaiter().GetResult();
@@ -382,7 +382,7 @@ public class BookValidationProperties
 
                 var mockLoanRepo = new Mock<ILoanRepository>();
 
-                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object);
+                var handler = new DeleteBookCommandHandler(mockBookRepo.Object, mockLoanRepo.Object, new Mock<IUnitOfWork>().Object);
 
                 // Act & Assert
                 try

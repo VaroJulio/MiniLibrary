@@ -26,6 +26,5 @@ public sealed class ReviewVoteRepository : IReviewVoteRepository
     public async Task AddAsync(ReviewVote vote, CancellationToken ct)
     {
         await _context.ReviewVotes.AddAsync(vote, ct);
-        await _context.SaveChangesAsync(ct);
     }
 }

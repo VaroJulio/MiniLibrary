@@ -5,6 +5,7 @@ export function useWishlist(page: number, pageSize: number) {
   return useQuery({
     queryKey: ['wishlist', page, pageSize],
     queryFn: () => fetchWishlist(page, pageSize),
+    staleTime: 30_000, // 30s — wishlist changes on add/remove (invalidated by mutations)
   });
 }
 

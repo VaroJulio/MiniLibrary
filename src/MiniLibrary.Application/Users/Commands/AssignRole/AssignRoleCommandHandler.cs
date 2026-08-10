@@ -12,10 +12,12 @@ namespace MiniLibrary.Application.Users.Commands.AssignRole;
 public sealed class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand, Unit>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public AssignRoleCommandHandler(IUserRepository userRepository)
+    public AssignRoleCommandHandler(IUserRepository userRepository, IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(AssignRoleCommand request, CancellationToken cancellationToken)
@@ -38,6 +40,7 @@ public sealed class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand
 
         user.AssignRole(request.NewRole);
         await _userRepository.UpdateAsync(user, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return Unit.Value;
     }

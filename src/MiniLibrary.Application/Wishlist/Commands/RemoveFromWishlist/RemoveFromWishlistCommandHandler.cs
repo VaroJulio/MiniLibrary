@@ -10,10 +10,12 @@ namespace MiniLibrary.Application.Wishlist.Commands.RemoveFromWishlist;
 public sealed class RemoveFromWishlistCommandHandler : IRequestHandler<RemoveFromWishlistCommand, Unit>
 {
     private readonly IWishlistRepository _wishlistRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RemoveFromWishlistCommandHandler(IWishlistRepository wishlistRepository)
+    public RemoveFromWishlistCommandHandler(IWishlistRepository wishlistRepository, IUnitOfWork unitOfWork)
     {
         _wishlistRepository = wishlistRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(RemoveFromWishlistCommand request, CancellationToken cancellationToken)
@@ -23,6 +25,7 @@ public sealed class RemoveFromWishlistCommandHandler : IRequestHandler<RemoveFro
             throw new NotFoundException("WishlistEntry", $"user={request.UserId}, book={request.BookId}");
 
         await _wishlistRepository.DeleteAsync(entry, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
         return Unit.Value;
     }
 }

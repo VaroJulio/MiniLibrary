@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MiniLibrary.API.Configuration;
 using MiniLibrary.API.Extensions;
+using MiniLibrary.API.Services;
 using MiniLibrary.Application.Interfaces;
 using MiniLibrary.Domain.Enumerations;
 using MiniLibrary.Domain.Interfaces;
@@ -12,7 +13,8 @@ using DomainUser = MiniLibrary.Domain.Entities.User;
 namespace MiniLibrary.API.Controllers;
 
 /// <summary>
-/// Handles OAuth authentication flows, JWT token generation, and token refresh.
+/// Handles OAuth authentication flows, JWT token generation via HttpOnly cookies, and token refresh.
+/// Tokens are never exposed to JavaScript — they are stored in HttpOnly, Secure, SameSite=Strict cookies.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -22,17 +24,23 @@ public class AuthController : ControllerBase
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
+    private readonly IWebHostEnvironment _environment;
+    private readonly IUnitOfWork _unitOfWork;
 
     public AuthController(
         IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
         IConfiguration configuration,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        IWebHostEnvironment environment,
+        IUnitOfWork unitOfWork)
     {
         _userRepository = userRepository;
         _jwtTokenService = jwtTokenService;
         _configuration = configuration;
         _logger = logger;
+        _environment = environment;
+        _unitOfWork = unitOfWork;
     }
 
     /// <summary>
@@ -68,12 +76,12 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// OAuth callback handler. Provisions user on first login and returns JWT + refresh tokens.
+    /// OAuth callback handler. Provisions user on first login, sets auth cookies, and redirects to frontend.
+    /// Tokens are set as HttpOnly cookies — never exposed in URLs or response bodies.
     /// </summary>
     /// <param name="provider">OAuth provider name</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>JWT access token, refresh token, and user profile.</returns>
-    /// <response code="200">Authentication successful. Returns tokens and user info.</response>
+    /// <response code="302">Sets auth cookies and redirects to frontend.</response>
     /// <response code="400">Unable to determine user identity from provider.</response>
     /// <response code="401">Authentication with external provider failed.</response>
     [HttpGet("callback/{provider}")]
@@ -84,7 +92,8 @@ public class AuthController : ControllerBase
         if (!authenticateResult.Succeeded || authenticateResult.Principal is null)
         {
             _logger.LogWarning("Authentication failed for provider {Provider}", provider);
-            return Unauthorized(new { error = "Authentication failed." });
+            var frontendUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+            return Redirect($"{frontendUrl}/login?error=auth_failed");
         }
 
         var principal = authenticateResult.Principal;
@@ -95,10 +104,11 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(externalId))
         {
             _logger.LogWarning("External ID not found in claims for provider {Provider}", provider);
-            return BadRequest(new { error = "Unable to determine user identity from provider." });
+            var frontendUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+            return Redirect($"{frontendUrl}/login?error=no_identity");
         }
 
-        // User provisioning: check if user exists by ExternalId+Provider, create with Member role if new (Req 6.3)
+        // User provisioning: check if user exists by ExternalId+Provider, create with Member role if new
         var user = await _userRepository.GetByExternalIdAsync(externalId, provider, ct);
 
         if (user is null)
@@ -115,40 +125,39 @@ public class AuthController : ControllerBase
                 role: UserRole.Member);
 
             await _userRepository.AddAsync(user, ct);
+            await _unitOfWork.CommitAsync(ct);
         }
 
-        // Generate JWT access token (60-minute expiration) and refresh token (7-day expiration) (Req 6.4)
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
-        _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
+        // Generate tokens and set as HttpOnly cookies
+        SetAuthCookiesForUser(user);
 
-        // Redirect to frontend with tokens in URL (SPA OAuth flow)
-        var frontendUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
-        var callbackUrl = $"{frontendUrl}/auth/callback?token={Uri.EscapeDataString(accessToken)}&refreshToken={Uri.EscapeDataString(refreshToken)}";
-        return Redirect(callbackUrl);
+        // Redirect to frontend — no tokens in URL
+        var redirectUrl = _configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+        return Redirect($"{redirectUrl}/auth/callback");
     }
 
     /// <summary>
-    /// Refreshes an expired JWT token using a valid refresh token (Req 6.5).
+    /// Refreshes an expired access token using the refresh token cookie.
+    /// Sets new auth cookies (token rotation).
     /// </summary>
-    /// <param name="request">The refresh token request body.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>New JWT access token and refresh token.</returns>
-    /// <response code="200">Token refreshed successfully.</response>
-    /// <response code="400">Refresh token not provided.</response>
+    /// <response code="200">Tokens refreshed. New cookies set.</response>
     /// <response code="401">Invalid or expired refresh token.</response>
     [HttpPost("refresh")]
     [AllowAnonymous]
-    public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request, CancellationToken ct)
+    public async Task<IActionResult> Refresh(CancellationToken ct)
     {
-        if (string.IsNullOrEmpty(request.RefreshToken))
+        // Read refresh token from cookie (not from request body)
+        var refreshToken = Request.Cookies[CookieTokenService.RefreshTokenCookie];
+
+        if (string.IsNullOrEmpty(refreshToken))
         {
-            return BadRequest(new { error = "Refresh token is required." });
+            return Unauthorized(new { error = "No refresh token." });
         }
 
-        var userId = _jwtTokenService.ValidateRefreshToken(request.RefreshToken);
+        var userId = _jwtTokenService.ValidateRefreshToken(refreshToken);
         if (userId is null)
         {
+            CookieTokenService.ClearAuthCookies(Response);
             return Unauthorized(new { error = "Invalid or expired refresh token." });
         }
 
@@ -157,25 +166,19 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning("Refresh token valid but user {UserId} not found.", userId.Value);
             _jwtTokenService.RevokeRefreshToken(userId.Value);
+            CookieTokenService.ClearAuthCookies(Response);
             return Unauthorized(new { error = "User not found." });
         }
 
         // Revoke old refresh token and issue new token pair (token rotation)
         _jwtTokenService.RevokeRefreshToken(user.Id);
+        SetAuthCookiesForUser(user);
 
-        var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
-        var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
-        _jwtTokenService.StoreRefreshToken(user.Id, newRefreshToken);
-
-        return Ok(new AuthTokenResponse(
-            AccessToken: newAccessToken,
-            RefreshToken: newRefreshToken,
-            ExpiresIn: 3600,
-            User: new AuthUserResponse(
-                Id: user.Id,
-                Email: user.Email,
-                FullName: user.FullName,
-                Role: user.Role.ToString())));
+        return Ok(new AuthUserResponse(
+            Id: user.Id,
+            Email: user.Email,
+            FullName: user.FullName,
+            Role: user.Role.ToString()));
     }
 
     /// <summary>
@@ -209,7 +212,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Logs out the current user by revoking their refresh token.
+    /// Logs out the current user by revoking refresh token and clearing auth cookies.
     /// </summary>
     [HttpPost("logout")]
     [Authorize]
@@ -221,16 +224,17 @@ public class AuthController : ControllerBase
             _jwtTokenService.RevokeRefreshToken(userId.Value);
         }
 
+        CookieTokenService.ClearAuthCookies(Response);
         return NoContent();
     }
 
     /// <summary>
-    /// [DEV ONLY] Generates a JWT token for testing without OAuth.
+    /// [DEV ONLY] Generates auth cookies for testing without OAuth.
     /// Enabled via Authentication:EnableDevTokens = true.
     /// </summary>
     /// <param name="request">Name, email, and role for the dev token.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <response code="200">Returns JWT access and refresh tokens.</response>
+    /// <response code="200">Auth cookies set. Returns user info.</response>
     /// <response code="404">Dev tokens are disabled.</response>
     [HttpPost("dev-token")]
     [AllowAnonymous]
@@ -260,32 +264,31 @@ public class AuthController : ControllerBase
             var parsedRole = Enum.Parse<UserRole>(role);
             user = DomainUser.Create(email, name, externalId, "DevToken", parsedRole);
             await _userRepository.AddAsync(user, ct);
+            await _unitOfWork.CommitAsync(ct);
         }
 
+        // Set auth cookies (tokens never returned in response body)
+        SetAuthCookiesForUser(user);
+
+        return Ok(new AuthUserResponse(
+            Id: user.Id,
+            Email: user.Email,
+            FullName: user.FullName,
+            Role: user.Role.ToString()));
+    }
+
+    /// <summary>
+    /// Helper: generates access + refresh tokens and sets them as HttpOnly cookies.
+    /// </summary>
+    private void SetAuthCookiesForUser(DomainUser user)
+    {
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
         _jwtTokenService.StoreRefreshToken(user.Id, refreshToken);
 
-        return Ok(new AuthTokenResponse(
-            AccessToken: accessToken,
-            RefreshToken: refreshToken,
-            ExpiresIn: 3600,
-            User: new AuthUserResponse(
-                Id: user.Id,
-                Email: user.Email,
-                FullName: user.FullName,
-                Role: user.Role.ToString())));
+        CookieTokenService.SetAuthCookies(Response, accessToken, refreshToken, _environment.IsDevelopment());
     }
 }
-
-/// <summary>
-/// Response model for authentication token endpoints.
-/// </summary>
-public record AuthTokenResponse(
-    string AccessToken,
-    string RefreshToken,
-    int ExpiresIn,
-    AuthUserResponse User);
 
 /// <summary>
 /// User details returned in auth responses.
@@ -295,11 +298,6 @@ public record AuthUserResponse(
     string Email,
     string FullName,
     string Role);
-
-/// <summary>
-/// Request model for token refresh.
-/// </summary>
-public record RefreshTokenRequest(string RefreshToken);
 
 /// <summary>
 /// Request model for dev token generation.

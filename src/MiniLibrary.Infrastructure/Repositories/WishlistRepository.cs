@@ -21,16 +21,15 @@ public sealed class WishlistRepository : IWishlistRepository
 
     public async Task<PagedResult<WishlistEntry>> GetUserWishlistAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.WishlistEntries
-            .Where(w => w.UserId == userId)
-            .Include(w => w.Book)
-            .OrderByDescending(w => w.AddedAt);
+        var baseQuery = _context.WishlistEntries.AsNoTracking().Where(w => w.UserId == userId);
 
-        var totalCount = await query.CountAsync(ct);
+        var totalCount = await baseQuery.CountAsync(ct);
 
         var pageSize = Math.Min(paging.PageSize, 20);
 
-        var items = await query
+        var items = await baseQuery
+            .Include(w => w.Book)
+            .OrderByDescending(w => w.AddedAt)
             .Skip((paging.Page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
@@ -46,13 +45,13 @@ public sealed class WishlistRepository : IWishlistRepository
 
     public async Task<int> GetUserWishlistCountAsync(Guid userId, CancellationToken ct)
     {
-        return await _context.WishlistEntries
+        return await _context.WishlistEntries.AsNoTracking()
             .CountAsync(w => w.UserId == userId, ct);
     }
 
     public async Task<List<WishlistEntry>> GetBookWatchersAsync(Guid bookId, CancellationToken ct)
     {
-        return await _context.WishlistEntries
+        return await _context.WishlistEntries.AsNoTracking()
             .Where(w => w.BookId == bookId)
             .Include(w => w.User)
             .ToListAsync(ct);
@@ -61,12 +60,11 @@ public sealed class WishlistRepository : IWishlistRepository
     public async Task AddAsync(WishlistEntry entry, CancellationToken ct)
     {
         await _context.WishlistEntries.AddAsync(entry, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task DeleteAsync(WishlistEntry entry, CancellationToken ct)
     {
         _context.WishlistEntries.Remove(entry);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 }

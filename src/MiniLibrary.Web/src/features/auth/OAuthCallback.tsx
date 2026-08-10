@@ -3,18 +3,24 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Box, CircularProgress, Typography, Alert } from '@mui/material';
 import { useAuth } from './AuthContext';
 
+/**
+ * OAuth callback page.
+ * After successful OAuth login, the backend sets HttpOnly auth cookies and
+ * redirects here. This component simply triggers a user refresh (GET /auth/me)
+ * to update the auth state, then navigates to the home page.
+ *
+ * If there's an error query param (from failed OAuth), shows the error briefly.
+ */
 export default function OAuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { handleCallback } = useAuth();
+  const { refreshUser } = useAuth();
   const processed = useRef(false);
 
   useEffect(() => {
     if (processed.current) return;
     processed.current = true;
 
-    const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refreshToken');
     const error = searchParams.get('error');
 
     if (error) {
@@ -23,13 +29,13 @@ export default function OAuthCallback() {
       return;
     }
 
-    if (token && refreshToken) {
-      handleCallback(token, refreshToken);
+    // Cookies are already set by the backend redirect — just refresh user state
+    refreshUser().then(() => {
       navigate('/', { replace: true });
-    } else {
+    }).catch(() => {
       navigate('/login', { replace: true });
-    }
-  }, [searchParams, navigate, handleCallback]);
+    });
+  }, [searchParams, navigate, refreshUser]);
 
   const error = searchParams.get('error');
 

@@ -16,17 +16,20 @@ public sealed class NotifyWishlistOnBookReturnedHandler : INotificationHandler<B
     private readonly IWishlistRepository _wishlistRepository;
     private readonly IBookRepository _bookRepository;
     private readonly INotificationService _notificationService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<NotifyWishlistOnBookReturnedHandler> _logger;
 
     public NotifyWishlistOnBookReturnedHandler(
         IWishlistRepository wishlistRepository,
         IBookRepository bookRepository,
         INotificationService notificationService,
+        IUnitOfWork unitOfWork,
         ILogger<NotifyWishlistOnBookReturnedHandler> logger)
     {
         _wishlistRepository = wishlistRepository;
         _bookRepository = bookRepository;
         _notificationService = notificationService;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
@@ -54,6 +57,8 @@ public sealed class NotifyWishlistOnBookReturnedHandler : INotificationHandler<B
 
             if (watchers.Count > 0)
                 _logger.LogInformation("Sent availability alerts to {Count} watchers for book {BookId}.", watchers.Count, notification.BookId);
+
+            await _unitOfWork.CommitAsync(cancellationToken);
         }
         catch (Exception ex)
         {

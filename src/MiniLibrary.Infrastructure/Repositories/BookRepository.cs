@@ -26,22 +26,24 @@ public class BookRepository : IBookRepository
 
     public async Task<Book?> GetByIsbnAsync(string isbn, CancellationToken ct)
     {
-        return await _context.Books.FirstOrDefaultAsync(b => b.ISBN == isbn, ct);
+        return await _context.Books.AsNoTracking().FirstOrDefaultAsync(b => b.ISBN == isbn, ct);
     }
 
     public async Task<PagedResult<Book>> SearchAsync(SearchCriteria criteria, CancellationToken ct)
     {
-        var query = _context.Books.AsQueryable();
+        var query = _context.Books.AsNoTracking().AsQueryable();
 
-        // Text search across title, author, ISBN, category (case-insensitive)
+        // Text search across title, author, ISBN, category.
+        // SQL Server default collation (Latin1_General_CI_AS) is case-insensitive,
+        // so no ToLower() is needed. Removing it allows index usage (SARGable).
         if (!string.IsNullOrWhiteSpace(criteria.Query))
         {
-            var searchTerm = criteria.Query.Trim().ToLower();
+            var searchTerm = criteria.Query.Trim();
             query = query.Where(b =>
-                EF.Functions.Like(b.Title.ToLower(), $"%{searchTerm}%") ||
-                EF.Functions.Like(b.Author.ToLower(), $"%{searchTerm}%") ||
-                EF.Functions.Like(b.ISBN.ToLower(), $"%{searchTerm}%") ||
-                EF.Functions.Like(b.Category.ToLower(), $"%{searchTerm}%"));
+                EF.Functions.Like(b.Title, $"%{searchTerm}%") ||
+                EF.Functions.Like(b.Author, $"%{searchTerm}%") ||
+                EF.Functions.Like(b.ISBN, $"%{searchTerm}%") ||
+                EF.Functions.Like(b.Category, $"%{searchTerm}%"));
         }
 
         // Filter by category
@@ -88,19 +90,18 @@ public class BookRepository : IBookRepository
     public async Task AddAsync(Book book, CancellationToken ct)
     {
         await _context.Books.AddAsync(book, ct);
-        await _context.SaveChangesAsync(ct);
     }
 
     public async Task UpdateAsync(Book book, CancellationToken ct)
     {
         _context.Books.Update(book);
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 
     public async Task DeleteAsync(Book book, CancellationToken ct)
     {
         book.Delete();
-        await _context.SaveChangesAsync(ct);
+        await Task.CompletedTask;
     }
 
     private static IQueryable<Book> ApplySorting(IQueryable<Book> query, string? sortBy, bool descending)

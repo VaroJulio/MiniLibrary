@@ -10,10 +10,12 @@ namespace MiniLibrary.Application.Notifications.Commands.MarkNotificationRead;
 public sealed class MarkNotificationReadCommandHandler : IRequestHandler<MarkNotificationReadCommand, Unit>
 {
     private readonly INotificationRepository _notificationRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public MarkNotificationReadCommandHandler(INotificationRepository notificationRepository)
+    public MarkNotificationReadCommandHandler(INotificationRepository notificationRepository, IUnitOfWork unitOfWork)
     {
         _notificationRepository = notificationRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Unit> Handle(MarkNotificationReadCommand request, CancellationToken cancellationToken)
@@ -24,6 +26,7 @@ public sealed class MarkNotificationReadCommandHandler : IRequestHandler<MarkNot
 
         notification.MarkAsRead();
         await _notificationRepository.UpdateAsync(notification, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return Unit.Value;
     }

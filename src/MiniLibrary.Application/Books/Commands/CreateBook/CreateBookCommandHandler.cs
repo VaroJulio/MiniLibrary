@@ -15,11 +15,13 @@ public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, BookR
 {
     private readonly IBookRepository _bookRepository;
     private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateBookCommandHandler(IBookRepository bookRepository, IMapper mapper)
+    public CreateBookCommandHandler(IBookRepository bookRepository, IMapper mapper, IUnitOfWork unitOfWork)
     {
         _bookRepository = bookRepository;
         _mapper = mapper;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<BookResponse> Handle(CreateBookCommand request, CancellationToken cancellationToken)
@@ -41,6 +43,7 @@ public class CreateBookCommandHandler : IRequestHandler<CreateBookCommand, BookR
             category: request.Category);
 
         await _bookRepository.AddAsync(book, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
 
         return _mapper.Map<BookResponse>(book);
     }

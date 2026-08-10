@@ -21,15 +21,15 @@ public sealed class DashboardService : IDashboardService
 
     public async Task<DashboardStatsResponse> GetStatsAsync(CancellationToken ct)
     {
-        var totalBooks = await _context.Books.CountAsync(ct);
-        var availableBooks = await _context.Books
+        var totalBooks = await _context.Books.AsNoTracking().CountAsync(ct);
+        var availableBooks = await _context.Books.AsNoTracking()
             .CountAsync(b => b.Status == BookStatus.Available, ct);
-        var checkedOutBooks = await _context.Books
+        var checkedOutBooks = await _context.Books.AsNoTracking()
             .CountAsync(b => b.Status == BookStatus.CheckedOut, ct);
-        var activeLoans = await _context.BookLoans
+        var activeLoans = await _context.BookLoans.AsNoTracking()
             .CountAsync(l => l.ReturnedAt == null, ct);
 
-        var usersByRole = await _context.Users
+        var usersByRole = await _context.Users.AsNoTracking()
             .Where(u => !u.IsDeleted)
             .GroupBy(u => u.Role)
             .Select(g => new { Role = g.Key.ToString(), Count = g.Count() })
@@ -50,16 +50,16 @@ public sealed class DashboardService : IDashboardService
         var thirtyDaysAgo = now.AddDays(-30);
         var twelveMonthsAgo = now.AddMonths(-12);
 
-        var loansLast7Days = await _context.BookLoans
+        var loansLast7Days = await _context.BookLoans.AsNoTracking()
             .CountAsync(l => l.BorrowedAt >= sevenDaysAgo, ct);
-        var loansLast30Days = await _context.BookLoans
+        var loansLast30Days = await _context.BookLoans.AsNoTracking()
             .CountAsync(l => l.BorrowedAt >= thirtyDaysAgo, ct);
-        var loansLast12Months = await _context.BookLoans
+        var loansLast12Months = await _context.BookLoans.AsNoTracking()
             .CountAsync(l => l.BorrowedAt >= twelveMonthsAgo, ct);
 
         // Popular categories (by loan count in last 12 months)
         // Use Join to avoid Include + GroupBy which EF Core cannot translate.
-        var popularCategories = await _context.BookLoans
+        var popularCategories = await _context.BookLoans.AsNoTracking()
             .Where(l => l.BorrowedAt >= twelveMonthsAgo)
             .Join(
                 _context.Books,
@@ -74,7 +74,7 @@ public sealed class DashboardService : IDashboardService
 
         // Top 10 most-borrowed books (all time)
         // Use Join with simple key selectors for EF Core SQL translation.
-        var topBooks = await _context.BookLoans
+        var topBooks = await _context.BookLoans.AsNoTracking()
             .Join(
                 _context.Books,
                 loan => loan.BookId,

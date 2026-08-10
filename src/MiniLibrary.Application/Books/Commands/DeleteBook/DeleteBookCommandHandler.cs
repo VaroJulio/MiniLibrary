@@ -12,11 +12,13 @@ public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand>
 {
     private readonly IBookRepository _bookRepository;
     private readonly ILoanRepository _loanRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteBookCommandHandler(IBookRepository bookRepository, ILoanRepository loanRepository)
+    public DeleteBookCommandHandler(IBookRepository bookRepository, ILoanRepository loanRepository, IUnitOfWork unitOfWork)
     {
         _bookRepository = bookRepository;
         _loanRepository = loanRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task Handle(DeleteBookCommand request, CancellationToken cancellationToken)
@@ -39,5 +41,6 @@ public class DeleteBookCommandHandler : IRequestHandler<DeleteBookCommand>
         book.Delete();
 
         await _bookRepository.DeleteAsync(book, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
     }
 }
