@@ -16,6 +16,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 - Kiro hook for browser smoke test reminder after task completion [MINI-77]
 
 ### Fixed
+- SearchAsync: remove ToLower() calls that prevented SQL Server index usage (SARGable queries via CI collation) [MINI-84]
 - Dark mode: primary color too dark (#1E3A5F) causing invisible text/borders on dark surfaces — now uses #90CAF9 in dark mode [MINI-76]
 - Dark mode: "Sign in with Microsoft" button text invisible on login page [MINI-76]
 - Dark mode: sidebar active item indistinguishable from background — now uses alpha-based highlight [MINI-76]
