@@ -34,11 +34,12 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<PagedResult<User>> GetAllAsync(PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.Users.OrderBy(u => u.FullName);
+        var baseQuery = _context.Users.AsNoTracking();
 
-        var totalCount = await query.CountAsync(ct);
+        var totalCount = await baseQuery.CountAsync(ct);
 
-        var items = await query
+        var items = await baseQuery
+            .OrderBy(u => u.FullName)
             .Skip((paging.Page - 1) * paging.PageSize)
             .Take(paging.PageSize)
             .ToListAsync(ct);
@@ -48,7 +49,7 @@ public sealed class UserRepository : IUserRepository
 
     public async Task<int> GetAdminCountAsync(CancellationToken ct)
     {
-        return await _context.Users
+        return await _context.Users.AsNoTracking()
             .CountAsync(u => u.Role == UserRole.Admin, ct);
     }
 

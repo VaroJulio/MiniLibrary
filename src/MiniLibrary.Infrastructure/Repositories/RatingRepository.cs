@@ -33,14 +33,14 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<Rating?> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        return await _context.Ratings
+        return await _context.Ratings.AsNoTracking()
             .Include(r => r.User)
             .FirstOrDefaultAsync(r => r.Id == id, ct);
     }
 
     public async Task<PagedResult<Rating>> GetBookRatingsAsync(Guid bookId, PaginationParams paging, CancellationToken ct)
     {
-        var baseQuery = _context.Ratings.Where(r => r.BookId == bookId);
+        var baseQuery = _context.Ratings.AsNoTracking().Where(r => r.BookId == bookId);
 
         var totalCount = await baseQuery.CountAsync(ct);
 
@@ -56,7 +56,7 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<List<Rating>> GetRecentBookRatingsAsync(Guid bookId, int count, CancellationToken ct)
     {
-        return await _context.Ratings
+        return await _context.Ratings.AsNoTracking()
             .Where(r => r.BookId == bookId)
             .Include(r => r.User)
             .OrderByDescending(r => r.CreatedAt)
@@ -66,7 +66,7 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<(decimal Average, int Count)> CalculateBookAverageAsync(Guid bookId, CancellationToken ct)
     {
-        var ratings = _context.Ratings.Where(r => r.BookId == bookId);
+        var ratings = _context.Ratings.AsNoTracking().Where(r => r.BookId == bookId);
 
         var count = await ratings.CountAsync(ct);
         if (count == 0)
@@ -78,18 +78,18 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<int> GetUserRatingCountAsync(Guid userId, CancellationToken ct)
     {
-        return await _context.Ratings.CountAsync(r => r.UserId == userId, ct);
+        return await _context.Ratings.AsNoTracking().CountAsync(r => r.UserId == userId, ct);
     }
 
     public async Task<int> GetUserUsefulReviewCountAsync(Guid userId, int minVotes, CancellationToken ct)
     {
-        return await _context.Ratings
+        return await _context.Ratings.AsNoTracking()
             .CountAsync(r => r.UserId == userId && r.UsefulVotes >= minVotes, ct);
     }
 
     public async Task<PagedResult<Rating>> GetUserRatingsAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var baseQuery = _context.Ratings.Where(r => r.UserId == userId);
+        var baseQuery = _context.Ratings.AsNoTracking().Where(r => r.UserId == userId);
 
         var totalCount = await baseQuery.CountAsync(ct);
 
@@ -106,7 +106,7 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<PagedResult<Rating>> GetRecentRatingsAsync(PaginationParams paging, CancellationToken ct)
     {
-        var baseQuery = _context.Ratings.AsQueryable();
+        var baseQuery = _context.Ratings.AsNoTracking().AsQueryable();
 
         var totalCount = await baseQuery.CountAsync(ct);
 

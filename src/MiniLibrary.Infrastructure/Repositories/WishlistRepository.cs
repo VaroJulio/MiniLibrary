@@ -21,7 +21,7 @@ public sealed class WishlistRepository : IWishlistRepository
 
     public async Task<PagedResult<WishlistEntry>> GetUserWishlistAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var baseQuery = _context.WishlistEntries.Where(w => w.UserId == userId);
+        var baseQuery = _context.WishlistEntries.AsNoTracking().Where(w => w.UserId == userId);
 
         var totalCount = await baseQuery.CountAsync(ct);
 
@@ -45,13 +45,13 @@ public sealed class WishlistRepository : IWishlistRepository
 
     public async Task<int> GetUserWishlistCountAsync(Guid userId, CancellationToken ct)
     {
-        return await _context.WishlistEntries
+        return await _context.WishlistEntries.AsNoTracking()
             .CountAsync(w => w.UserId == userId, ct);
     }
 
     public async Task<List<WishlistEntry>> GetBookWatchersAsync(Guid bookId, CancellationToken ct)
     {
-        return await _context.WishlistEntries
+        return await _context.WishlistEntries.AsNoTracking()
             .Where(w => w.BookId == bookId)
             .Include(w => w.User)
             .ToListAsync(ct);

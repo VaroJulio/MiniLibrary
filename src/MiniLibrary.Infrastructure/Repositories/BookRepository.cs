@@ -26,12 +26,12 @@ public class BookRepository : IBookRepository
 
     public async Task<Book?> GetByIsbnAsync(string isbn, CancellationToken ct)
     {
-        return await _context.Books.FirstOrDefaultAsync(b => b.ISBN == isbn, ct);
+        return await _context.Books.AsNoTracking().FirstOrDefaultAsync(b => b.ISBN == isbn, ct);
     }
 
     public async Task<PagedResult<Book>> SearchAsync(SearchCriteria criteria, CancellationToken ct)
     {
-        var query = _context.Books.AsQueryable();
+        var query = _context.Books.AsNoTracking().AsQueryable();
 
         // Text search across title, author, ISBN, category.
         // SQL Server default collation (Latin1_General_CI_AS) is case-insensitive,

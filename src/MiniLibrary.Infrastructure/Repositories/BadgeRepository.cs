@@ -21,7 +21,7 @@ public sealed class BadgeRepository : IBadgeRepository
 
     public async Task<List<Badge>> GetUserBadgesAsync(Guid userId, CancellationToken ct)
     {
-        return await _context.Badges
+        return await _context.Badges.AsNoTracking()
             .Where(b => b.UserId == userId)
             .OrderByDescending(b => b.EarnedAt)
             .ToListAsync(ct);
@@ -32,7 +32,7 @@ public sealed class BadgeRepository : IBadgeRepository
         if (!Enum.TryParse<BadgeType>(badgeType, ignoreCase: true, out var parsedType))
             return false;
 
-        return await _context.Badges
+        return await _context.Badges.AsNoTracking()
             .AnyAsync(b => b.UserId == userId && b.BadgeType == parsedType, ct);
     }
 
