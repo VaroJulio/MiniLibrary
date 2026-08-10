@@ -8,11 +8,10 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/services/apiClient';
-import type { User } from '@/types/models';
+import type { User, UserRole } from '@/types/models';
 
 interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -20,116 +19,85 @@ interface AuthState {
 interface AuthContextValue extends AuthState {
   login: (provider: 'google' | 'microsoft') => void;
   logout: () => void;
-  handleCallback: (token: string, refreshToken: string) => void;
+  /** Re-fetches current user from /auth/me (call after login/callback) */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const TOKEN_KEY = 'auth_token';
-const REFRESH_TOKEN_KEY = 'auth_refresh_token';
-
-function parseJwtPayload(token: string): User | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1]!));
-    return {
-      id: payload.sub ?? payload.nameid ?? '',
-      email: payload.email ?? '',
-      name: payload.name ?? payload.unique_name ?? '',
-      role: payload.role ?? payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ?? 'Member',
-    };
-  } catch {
-    return null;
-  }
-}
-
-function isTokenExpired(token: string): boolean {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return true;
-    const payload = JSON.parse(atob(parts[1]!));
-    if (!payload.exp) return false;
-    // Consider expired if less than 60 seconds remaining
-    return payload.exp * 1000 < Date.now() + 60_000;
-  } catch {
-    return true;
-  }
-}
-
+/**
+ * AuthProvider that uses HttpOnly cookie-based authentication.
+ * No tokens are stored in JavaScript — the browser automatically sends
+ * auth cookies with every request. User state is determined by calling
+ * GET /auth/me on mount.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
     user: null,
-    token: null,
     isAuthenticated: false,
     isLoading: true,
   });
 
-  useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token && !isTokenExpired(token)) {
-      const user = parseJwtPayload(token);
-      if (user) {
-        setState({ user, token, isAuthenticated: true, isLoading: false });
-        return;
-      }
-    }
-
-    // Try to refresh if we have a refresh token
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (refreshToken && token) {
-      apiClient
-        .post<{ token: string; refreshToken: string }>('/auth/refresh', { refreshToken })
-        .then(({ data }) => {
-          localStorage.setItem(TOKEN_KEY, data.token);
-          localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-          const user = parseJwtPayload(data.token);
-          setState({
-            user,
-            token: data.token,
-            isAuthenticated: !!user,
-            isLoading: false,
-          });
-        })
-        .catch(() => {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(REFRESH_TOKEN_KEY);
-          setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
-        });
-    } else {
-      if (!token) {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
-      }
-      setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
+  const fetchCurrentUser = useCallback(async () => {
+    try {
+      const { data } = await apiClient.get<{
+        id: string;
+        email: string;
+        fullName: string;
+        role: string;
+      }>('/auth/me');
+      setState({
+        user: {
+          id: data.id,
+          email: data.email,
+          name: data.fullName,
+          role: data.role as UserRole,
+        },
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch {
+      // Not authenticated or token expired (refresh also failed)
+      setState({ user: null, isAuthenticated: false, isLoading: false });
     }
   }, []);
+
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   const login = useCallback((provider: 'google' | 'microsoft') => {
-    window.location.href = `/api/auth/login/${provider}`;
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
+    let authUrl: string;
+    if (apiBaseUrl.startsWith('http')) {
+      try {
+        const url = new URL(apiBaseUrl);
+        authUrl = url.origin;
+      } catch {
+        authUrl = 'http://localhost:5000';
+      }
+    } else {
+      authUrl = 'http://localhost:5000';
+    }
+    window.location.href = `${authUrl}/api/auth/login/${provider}`;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    setState({ user: null, token: null, isAuthenticated: false, isLoading: false });
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Ignore errors on logout — cookies will be cleared by server
+    }
+    setState({ user: null, isAuthenticated: false, isLoading: false });
     window.location.href = '/login';
   }, []);
 
-  const handleCallback = useCallback((token: string, refreshToken: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-    const user = parseJwtPayload(token);
-    setState({
-      user,
-      token,
-      isAuthenticated: !!user,
-      isLoading: false,
-    });
-  }, []);
+  const refreshUser = useCallback(async () => {
+    await fetchCurrentUser();
+  }, [fetchCurrentUser]);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, handleCallback }}>
+    <AuthContext.Provider value={{ ...state, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

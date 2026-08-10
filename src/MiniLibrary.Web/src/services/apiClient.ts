@@ -1,50 +1,62 @@
 import axios from 'axios';
 import { ApiError, type ProblemDetailsResponse } from './ApiError';
 
-const TOKEN_KEY = 'auth_token';
-const REFRESH_TOKEN_KEY = 'auth_refresh_token';
-
 /**
  * Axios instance pre-configured with:
  * - Base URL from environment or proxy
- * - JWT Bearer token in Authorization header
+ * - withCredentials for HttpOnly cookie auth
+ * - X-XSRF-TOKEN header for CSRF protection (double-submit cookie pattern)
  * - X-Correlation-Id header for request tracing
- * - Automatic token refresh on 401 responses
+ * - Automatic redirect to /login on 401 (cookie expired)
+ *
+ * Tokens are NEVER stored in JavaScript — they live in HttpOnly cookies
+ * managed entirely by the browser and server.
  */
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Send HttpOnly cookies with every request
 });
 
 function generateCorrelationId(): string {
   return crypto.randomUUID();
 }
 
-// Request interceptor: attach JWT and Correlation ID
+/**
+ * Reads a cookie value by name from document.cookie.
+ * Used to read the XSRF-TOKEN cookie (which is NOT HttpOnly).
+ */
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]!) : null;
+}
+
+// Request interceptor: attach CSRF token and Correlation ID
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Attach CSRF token for state-changing requests
+  const csrfToken = getCookie('XSRF-TOKEN');
+  if (csrfToken && config.method && !['get', 'head', 'options'].includes(config.method.toLowerCase())) {
+    config.headers['X-XSRF-TOKEN'] = csrfToken;
   }
   config.headers['X-Correlation-Id'] = generateCorrelationId();
   return config;
 });
 
-// Response interceptor: handle 401 with token refresh
+// Response interceptor: handle 401 with cookie-based refresh
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (error: unknown) => void;
 }> = [];
 
-function processQueue(error: unknown, token: string | null = null) {
+function processQueue(error: unknown) {
   failedQueue.forEach((pending) => {
     if (error) {
       pending.reject(error);
-    } else if (token) {
-      pending.resolve(token);
+    } else {
+      pending.resolve();
     }
   });
   failedQueue = [];
@@ -55,21 +67,20 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // --- 401 Token Refresh Logic ---
+    // --- 401 Token Refresh Logic (cookie-based) ---
     if (error.response?.status === 401 && !originalRequest._retry) {
       // Don't try to refresh if the failing request was the refresh itself
       if (originalRequest.url?.includes('/auth/refresh')) {
-        clearTokens();
         window.location.href = '/login';
         return Promise.reject(toApiError(error));
       }
 
       if (isRefreshing) {
         // Queue this request until the refresh completes
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        }).then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+        }).then(() => {
+          // Retry with updated cookies (browser handles cookie automatically)
           return apiClient(originalRequest);
         });
       }
@@ -77,29 +88,14 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-      if (!refreshToken) {
-        isRefreshing = false;
-        clearTokens();
-        window.location.href = '/login';
-        return Promise.reject(toApiError(error));
-      }
-
       try {
-        const { data } = await axios.post<{ token: string; refreshToken: string }>(
-          `${apiClient.defaults.baseURL}/auth/refresh`,
-          { refreshToken },
-        );
+        // POST /auth/refresh — server reads refresh_token cookie and sets new cookies
+        await apiClient.post('/auth/refresh');
 
-        localStorage.setItem(TOKEN_KEY, data.token);
-        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
-
-        processQueue(null, data.token);
-        originalRequest.headers.Authorization = `Bearer ${data.token}`;
+        processQueue(null);
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
-        clearTokens();
         window.location.href = '/login';
         return Promise.reject(toApiError(refreshError));
       } finally {
@@ -157,9 +153,4 @@ function toApiError(error: unknown): ApiError {
     title: 'Unexpected Error',
     detail: error instanceof Error ? error.message : 'An unexpected error occurred.',
   });
-}
-
-function clearTokens() {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
