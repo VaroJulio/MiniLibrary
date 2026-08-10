@@ -56,6 +56,10 @@ public static class CookieTokenService
         response.Cookies.Append(AccessTokenCookie, accessToken, secureCookieOptions);
         response.Cookies.Append(RefreshTokenCookie, refreshToken, refreshCookieOptions);
         response.Cookies.Append(CsrfTokenCookie, csrfToken, csrfCookieOptions);
+
+        // Also expose CSRF token as a response header for cross-origin scenarios
+        // where JavaScript cannot read cookies set by a different domain.
+        response.Headers.Append("X-CSRF-TOKEN", csrfToken);
     }
 
     /// <summary>

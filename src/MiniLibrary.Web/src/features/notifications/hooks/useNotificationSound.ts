@@ -2,13 +2,35 @@ import { useCallback, useRef } from 'react';
 
 const MUTE_KEY = 'minilib_notification_sound_muted';
 
+// Shared AudioContext — created once and reused across plays.
+// Must be resumed after a user gesture; we resume on the first call to play().
+let sharedAudioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
+  try {
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    }
+    return sharedAudioCtx;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Generates a short pleasant notification tone using the Web Audio API.
  * No external audio file is needed — the sound is synthesized on-the-fly.
  */
-function playNotificationTone(): void {
+async function playNotificationTone(): Promise<void> {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    // Resume the context if suspended (browser autoplay policy)
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
@@ -29,14 +51,26 @@ function playNotificationTone(): void {
 
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.25);
-
-    // Clean up audio context after playback
-    oscillator.onended = () => {
-      ctx.close();
-    };
   } catch {
     // Silently fail if Web Audio API is not available
   }
+}
+
+// Resume the shared AudioContext on the first user interaction.
+// This "unlocks" audio for all subsequent programmatic plays.
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    const ctx = getAudioContext();
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+    window.removeEventListener('touchstart', unlockAudio);
+  };
+  window.addEventListener('click', unlockAudio, { once: true });
+  window.addEventListener('keydown', unlockAudio, { once: true });
+  window.addEventListener('touchstart', unlockAudio, { once: true });
 }
 
 export function isSoundMuted(): boolean {
@@ -67,7 +101,7 @@ export function useNotificationSound() {
     // Re-read mute state at play time (in case toggled elsewhere)
     isMutedRef.current = isSoundMuted();
     if (!isMutedRef.current) {
-      playNotificationTone();
+      void playNotificationTone();
     }
   }, []);
 

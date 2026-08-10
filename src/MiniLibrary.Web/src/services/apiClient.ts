@@ -25,6 +25,12 @@ function generateCorrelationId(): string {
 }
 
 /**
+ * In-memory CSRF token captured from response headers.
+ * Used when the XSRF-TOKEN cookie is not readable (cross-origin deployments).
+ */
+let csrfTokenFromHeader: string | null = null;
+
+/**
  * Reads a cookie value by name from document.cookie.
  * Used to read the XSRF-TOKEN cookie (which is NOT HttpOnly).
  */
@@ -33,10 +39,18 @@ function getCookie(name: string): string | null {
   return match ? decodeURIComponent(match[1]!) : null;
 }
 
+/**
+ * Gets the CSRF token: first tries the cookie, then falls back to the
+ * in-memory token captured from response headers (cross-origin scenario).
+ */
+function getCsrfToken(): string | null {
+  return getCookie('XSRF-TOKEN') || csrfTokenFromHeader;
+}
+
 // Request interceptor: attach CSRF token and Correlation ID
 apiClient.interceptors.request.use((config) => {
   // Attach CSRF token for state-changing requests
-  const csrfToken = getCookie('XSRF-TOKEN');
+  const csrfToken = getCsrfToken();
   if (csrfToken && config.method && !['get', 'head', 'options'].includes(config.method.toLowerCase())) {
     config.headers['X-XSRF-TOKEN'] = csrfToken;
   }
@@ -44,7 +58,7 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: handle 401 with cookie-based refresh
+// Response interceptor: capture CSRF token from headers and handle 401 refresh
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: () => void;
@@ -63,7 +77,13 @@ function processQueue(error: unknown) {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const csrfHeader = response.headers['x-csrf-token'];
+    if (csrfHeader) {
+      csrfTokenFromHeader = csrfHeader;
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
