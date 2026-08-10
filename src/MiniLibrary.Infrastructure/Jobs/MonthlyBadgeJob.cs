@@ -73,17 +73,17 @@ public sealed class MonthlyBadgeJob : BackgroundService
         if (topReader is not null)
         {
             var alreadyHas = await badgeRepository.HasBadgeAsync(
-                topReader.UserId, BadgeType.LectorDelMes.ToString(), ct);
+                topReader.UserId, BadgeType.ReaderOfTheMonth.ToString(), ct);
             if (!alreadyHas)
             {
-                var badge = Badge.Create(topReader.UserId, BadgeType.LectorDelMes);
+                var badge = Badge.Create(topReader.UserId, BadgeType.ReaderOfTheMonth);
                 await badgeRepository.AddAsync(badge, ct);
                 await notificationService.SendInAppAsync(
                     topReader.UserId,
                     "Badge Earned!",
                     "You are the Reader of the Month! Congratulations!",
                     NotificationType.BadgeEarned, ct);
-                _logger.LogInformation("LectorDelMes badge awarded to user {UserId}.", topReader.UserId);
+                _logger.LogInformation("ReaderOfTheMonth badge awarded to user {UserId}.", topReader.UserId);
             }
         }
 
