@@ -33,15 +33,17 @@ public class BookRepository : IBookRepository
     {
         var query = _context.Books.AsQueryable();
 
-        // Text search across title, author, ISBN, category (case-insensitive)
+        // Text search across title, author, ISBN, category.
+        // SQL Server default collation (Latin1_General_CI_AS) is case-insensitive,
+        // so no ToLower() is needed. Removing it allows index usage (SARGable).
         if (!string.IsNullOrWhiteSpace(criteria.Query))
         {
-            var searchTerm = criteria.Query.Trim().ToLower();
+            var searchTerm = criteria.Query.Trim();
             query = query.Where(b =>
-                EF.Functions.Like(b.Title.ToLower(), $"%{searchTerm}%") ||
-                EF.Functions.Like(b.Author.ToLower(), $"%{searchTerm}%") ||
-                EF.Functions.Like(b.ISBN.ToLower(), $"%{searchTerm}%") ||
-                EF.Functions.Like(b.Category.ToLower(), $"%{searchTerm}%"));
+                EF.Functions.Like(b.Title, $"%{searchTerm}%") ||
+                EF.Functions.Like(b.Author, $"%{searchTerm}%") ||
+                EF.Functions.Like(b.ISBN, $"%{searchTerm}%") ||
+                EF.Functions.Like(b.Category, $"%{searchTerm}%"));
         }
 
         // Filter by category
