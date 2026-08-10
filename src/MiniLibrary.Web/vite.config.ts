@@ -20,6 +20,18 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
+    minify: 'esbuild',
+    modulePreload: { polyfill: false },
+    rollupOptions: {
+      output: {
+        chunkFileNames: 'assets/[hash].js',
+        entryFileNames: 'assets/[hash].js',
+        assetFileNames: 'assets/[hash].[ext]',
+        generatedCode: {
+          preset: 'es2015',
+        },
+      },
+    },
   },
 });
