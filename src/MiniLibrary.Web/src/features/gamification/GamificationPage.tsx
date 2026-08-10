@@ -19,6 +19,26 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useMyBadges, useLeaderboard } from './hooks/useGamification';
 import { EmptyState } from '@/components/EmptyState';
 
+/** Maps badge type keys to user-friendly display names */
+const badgeDisplayNames: Record<string, string> = {
+  FirstLoan: 'First Loan',
+  NoviceReader: 'Novice Reader',
+  AvidReader: 'Avid Reader',
+  ExpertReader: 'Expert Reader',
+  Centenarian: 'Centenarian',
+  LiteraryCritic: 'Literary Critic',
+  CommunityVoice: 'Community Voice',
+  Explorer: 'Explorer',
+  Polymath: 'Polymath',
+  Punctual: 'Punctual',
+  ReaderOfTheMonth: 'Reader of the Month',
+  TopReviewer: 'Top Reviewer',
+};
+
+function getBadgeDisplayName(badgeType: string): string {
+  return badgeDisplayNames[badgeType] ?? badgeType;
+}
+
 export default function GamificationPage() {
   const { data: badgesData, isLoading: badgesLoading } = useMyBadges();
   const { data: leaderboard, isLoading: leaderboardLoading } = useLeaderboard();
@@ -55,7 +75,7 @@ export default function GamificationPage() {
               <CardContent sx={{ py: 2 }}>
                 <EmojiEventsIcon sx={{ fontSize: 32, color: 'secondary.main' }} />
                 <Typography variant="subtitle2" fontWeight={600} sx={{ mt: 1 }}>
-                  {badge.badgeType}
+                  {getBadgeDisplayName(badge.badgeType)}
                 </Typography>
                 <Typography variant="caption" color="text.disabled">
                   {new Date(badge.earnedAt).toLocaleDateString()}
@@ -78,7 +98,7 @@ export default function GamificationPage() {
                 <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
                     <Box>
-                      <Typography variant="subtitle2" fontWeight={600}>{badge.badgeType}</Typography>
+                      <Typography variant="subtitle2" fontWeight={600}>{getBadgeDisplayName(badge.badgeType)}</Typography>
                       <Typography variant="caption" color="text.secondary">
                         {badge.currentCount} / {badge.requiredCount}
                       </Typography>

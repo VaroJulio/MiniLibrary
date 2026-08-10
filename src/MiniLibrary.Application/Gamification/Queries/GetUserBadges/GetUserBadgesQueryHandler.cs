@@ -56,14 +56,14 @@ public sealed class GetUserBadgesQueryHandler
             // Calculate progress for each unearned badge
             var criteria = new (BadgeType Type, int Current, int Required)[]
             {
-                (BadgeType.PrimerPrestamo, completedLoans, 1),
-                (BadgeType.LectorNovato, completedLoans, 5),
-                (BadgeType.LectorAvido, completedLoans, 20),
-                (BadgeType.LectorExperto, completedLoans, 50),
-                (BadgeType.Centenario, completedLoans, 100),
-                (BadgeType.Explorador, categoriesRead, 5),
-                (BadgeType.Polimata, categoriesRead, 10),
-                (BadgeType.Puntual, onTimeReturns, 10),
+                (BadgeType.FirstLoan, completedLoans, 1),
+                (BadgeType.NoviceReader, completedLoans, 5),
+                (BadgeType.AvidReader, completedLoans, 20),
+                (BadgeType.ExpertReader, completedLoans, 50),
+                (BadgeType.Centenarian, completedLoans, 100),
+                (BadgeType.Explorer, categoriesRead, 5),
+                (BadgeType.Polymath, categoriesRead, 10),
+                (BadgeType.Punctual, onTimeReturns, 10),
             };
 
             foreach (var (type, current, required) in criteria)

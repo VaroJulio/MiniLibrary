@@ -70,51 +70,51 @@ public sealed class EvaluateBadgesCommandHandler : IRequestHandler<EvaluateBadge
         // Evaluate each badge criterion
         var badgesToAward = new List<BadgeType>();
 
-        // PrimerPrestamo: 1+ completed loan
-        if (!earnedTypes.Contains(BadgeType.PrimerPrestamo) && completedLoans >= 1)
-            badgesToAward.Add(BadgeType.PrimerPrestamo);
+        // FirstLoan: 1+ completed loan
+        if (!earnedTypes.Contains(BadgeType.FirstLoan) && completedLoans >= 1)
+            badgesToAward.Add(BadgeType.FirstLoan);
 
-        // LectorNovato: 5+ completed loans
-        if (!earnedTypes.Contains(BadgeType.LectorNovato) && completedLoans >= 5)
-            badgesToAward.Add(BadgeType.LectorNovato);
+        // NoviceReader: 5+ completed loans
+        if (!earnedTypes.Contains(BadgeType.NoviceReader) && completedLoans >= 5)
+            badgesToAward.Add(BadgeType.NoviceReader);
 
-        // LectorAvido: 20+ completed loans
-        if (!earnedTypes.Contains(BadgeType.LectorAvido) && completedLoans >= 20)
-            badgesToAward.Add(BadgeType.LectorAvido);
+        // AvidReader: 20+ completed loans
+        if (!earnedTypes.Contains(BadgeType.AvidReader) && completedLoans >= 20)
+            badgesToAward.Add(BadgeType.AvidReader);
 
-        // LectorExperto: 50+ completed loans
-        if (!earnedTypes.Contains(BadgeType.LectorExperto) && completedLoans >= 50)
-            badgesToAward.Add(BadgeType.LectorExperto);
+        // ExpertReader: 50+ completed loans
+        if (!earnedTypes.Contains(BadgeType.ExpertReader) && completedLoans >= 50)
+            badgesToAward.Add(BadgeType.ExpertReader);
 
-        // Centenario: 100+ completed loans
-        if (!earnedTypes.Contains(BadgeType.Centenario) && completedLoans >= 100)
-            badgesToAward.Add(BadgeType.Centenario);
+        // Centenarian: 100+ completed loans
+        if (!earnedTypes.Contains(BadgeType.Centenarian) && completedLoans >= 100)
+            badgesToAward.Add(BadgeType.Centenarian);
 
-        // CriticoLiterario: 10+ ratings
+        // LiteraryCritic: 10+ ratings
         // (We count ratings from the user indirectly via loan-based approach or dedicated query)
         // For simplicity, check if user has submitted ratings
         var hasEnoughRatings = await CheckRatingCountAsync(userId, 10, cancellationToken);
-        if (!earnedTypes.Contains(BadgeType.CriticoLiterario) && hasEnoughRatings)
-            badgesToAward.Add(BadgeType.CriticoLiterario);
+        if (!earnedTypes.Contains(BadgeType.LiteraryCritic) && hasEnoughRatings)
+            badgesToAward.Add(BadgeType.LiteraryCritic);
 
-        // VozDeLaComunidad: 5+ ratings with useful votes
+        // CommunityVoice: 5+ ratings with useful votes
         var hasUsefulReviews = await CheckUsefulReviewsAsync(userId, 5, cancellationToken);
-        if (!earnedTypes.Contains(BadgeType.VozDeLaComunidad) && hasUsefulReviews)
-            badgesToAward.Add(BadgeType.VozDeLaComunidad);
+        if (!earnedTypes.Contains(BadgeType.CommunityVoice) && hasUsefulReviews)
+            badgesToAward.Add(BadgeType.CommunityVoice);
 
-        // Explorador: 5+ distinct categories read
-        if (!earnedTypes.Contains(BadgeType.Explorador) && categoriesRead >= 5)
-            badgesToAward.Add(BadgeType.Explorador);
+        // Explorer: 5+ distinct categories read
+        if (!earnedTypes.Contains(BadgeType.Explorer) && categoriesRead >= 5)
+            badgesToAward.Add(BadgeType.Explorer);
 
-        // Polimata: 10+ distinct categories read
-        if (!earnedTypes.Contains(BadgeType.Polimata) && categoriesRead >= 10)
-            badgesToAward.Add(BadgeType.Polimata);
+        // Polymath: 10+ distinct categories read
+        if (!earnedTypes.Contains(BadgeType.Polymath) && categoriesRead >= 10)
+            badgesToAward.Add(BadgeType.Polymath);
 
-        // Puntual: 10+ loans returned before due date
+        // Punctual: 10+ loans returned before due date
         var onTimeReturns = history.Items.Count(l =>
             l.ReturnedAt is not null && l.ReturnedAt <= l.DueDate);
-        if (!earnedTypes.Contains(BadgeType.Puntual) && onTimeReturns >= 10)
-            badgesToAward.Add(BadgeType.Puntual);
+        if (!earnedTypes.Contains(BadgeType.Punctual) && onTimeReturns >= 10)
+            badgesToAward.Add(BadgeType.Punctual);
 
         // Award badges
         foreach (var badgeType in badgesToAward)
