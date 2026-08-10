@@ -18,6 +18,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - **Security**: JWT tokens migrated from localStorage to HttpOnly cookies (XSS-safe) with CSRF double-submit protection [MINI-81]
 - **Atomicity**: Unit of Work pattern — multi-step operations (checkout, checkin, rating) now commit atomically via IUnitOfWork [MINI-79]
+- **Testing**: Integration tests migrated from InMemory DB to TestContainers (real SQL Server 2022 container) [MINI-80]
 - SearchAsync: remove ToLower() calls that prevented SQL Server index usage (SARGable queries via CI collation) [MINI-84]
 - CountAsync: separate base filter from Include/OrderBy to avoid unnecessary JOINs and ORDER BY in COUNT queries [MINI-83]
 - Read-only queries: add AsNoTracking to all query methods across repositories and DashboardService [MINI-82]

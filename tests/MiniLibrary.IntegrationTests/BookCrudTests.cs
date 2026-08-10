@@ -5,7 +5,8 @@ using FluentAssertions;
 
 namespace MiniLibrary.IntegrationTests;
 
-public class BookCrudTests : IClassFixture<CustomWebApplicationFactory>
+[Collection("Integration")]
+public class BookCrudTests
 {
     private readonly CustomWebApplicationFactory _factory;
 

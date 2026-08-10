@@ -3,7 +3,8 @@ using FluentAssertions;
 
 namespace MiniLibrary.IntegrationTests;
 
-public class HealthEndpointTests : IClassFixture<CustomWebApplicationFactory>
+[Collection("Integration")]
+public class HealthEndpointTests
 {
     private readonly HttpClient _client;
 

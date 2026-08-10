@@ -148,7 +148,7 @@ public class CheckOutBookCommandHandlerTests
             .ReturnsAsync(book);
         _loanRepositoryMock.Setup(r => r.GetActiveLoanCountAsync(userId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
-        _bookRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Book>(), It.IsAny<CancellationToken>()))
+        _mockUnitOfWork.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DbUpdateConcurrencyException("Concurrency conflict"));
 
         // Act
