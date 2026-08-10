@@ -59,6 +59,24 @@ var authBuilder = builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero
     };
+
+    // Read JWT from HttpOnly cookie when no Authorization header is present
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // If no Authorization header, try the access_token cookie
+            if (string.IsNullOrEmpty(context.Request.Headers.Authorization))
+            {
+                var accessToken = context.Request.Cookies["access_token"];
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Only register OAuth providers if credentials are configured
@@ -220,6 +238,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+app.UseMiddleware<MiniLibrary.API.Middleware.CsrfProtectionMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

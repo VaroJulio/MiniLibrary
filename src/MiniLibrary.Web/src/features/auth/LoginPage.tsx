@@ -4,56 +4,23 @@ import MicrosoftIcon from '@mui/icons-material/Window';
 import DeveloperModeIcon from '@mui/icons-material/DeveloperMode';
 import { useState } from 'react';
 import { useAuth } from './AuthContext';
+import { apiClient } from '@/services/apiClient';
 
 export default function LoginPage() {
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
-  const { handleCallback } = useAuth();
+  const { login, refreshUser } = useAuth();
   const [devRole, setDevRole] = useState<string>('Member');
   const [devLoading, setDevLoading] = useState(false);
-
-  // Determine the auth base URL:
-  // - If VITE_API_BASE_URL is a full URL (Azure), extract the origin
-  // - If relative (/api), use the current API server directly
-  const getAuthUrl = () => {
-    if (apiBaseUrl.startsWith('http')) {
-      try {
-        const url = new URL(apiBaseUrl);
-        return url.origin;
-      } catch {
-        return 'http://localhost:5000';
-      }
-    }
-    return 'http://localhost:5000';
-  };
-
-  const authUrl = getAuthUrl();
-
-  const handleGoogleLogin = () => {
-    window.location.href = `${authUrl}/api/auth/login/google`;
-  };
-
-  const handleMicrosoftLogin = () => {
-    window.location.href = `${authUrl}/api/auth/login/microsoft`;
-  };
 
   const handleDevLogin = async () => {
     setDevLoading(true);
     try {
-      const baseUrl = apiBaseUrl || '/api';
-      const response = await fetch(`${baseUrl}/auth/dev-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: devRole }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        handleCallback(data.accessToken, data.refreshToken);
-        window.location.href = '/';
-      } else {
-        alert('Dev tokens are disabled on this server.');
-      }
+      // POST /auth/dev-token sets HttpOnly cookies; response contains user info
+      await apiClient.post('/auth/dev-token', { role: devRole });
+      // Refresh auth state from the newly-set cookies
+      await refreshUser();
+      window.location.href = '/';
     } catch {
-      alert('Failed to connect to API. Is it running?');
+      alert('Dev tokens are disabled on this server or API is not running.');
     } finally {
       setDevLoading(false);
     }
@@ -82,7 +49,7 @@ export default function LoginPage() {
               variant="contained"
               size="large"
               startIcon={<GoogleIcon />}
-              onClick={handleGoogleLogin}
+              onClick={() => login('google')}
               fullWidth
               sx={{
                 bgcolor: (theme) =>
@@ -100,7 +67,7 @@ export default function LoginPage() {
               variant="outlined"
               size="large"
               startIcon={<MicrosoftIcon />}
-              onClick={handleMicrosoftLogin}
+              onClick={() => login('microsoft')}
               fullWidth
               sx={{
                 borderColor: (theme) =>
