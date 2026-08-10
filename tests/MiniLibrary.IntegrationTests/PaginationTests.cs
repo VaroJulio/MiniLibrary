@@ -5,7 +5,8 @@ using FluentAssertions;
 
 namespace MiniLibrary.IntegrationTests;
 
-public class PaginationTests : IClassFixture<CustomWebApplicationFactory>
+[Collection("Integration")]
+public class PaginationTests
 {
     private readonly HttpClient _client;
 

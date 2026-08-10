@@ -3,7 +3,8 @@ using FluentAssertions;
 
 namespace MiniLibrary.IntegrationTests;
 
-public class AuthenticationTests : IClassFixture<CustomWebApplicationFactory>
+[Collection("Integration")]
+public class AuthenticationTests
 {
     private readonly CustomWebApplicationFactory _factory;
 
