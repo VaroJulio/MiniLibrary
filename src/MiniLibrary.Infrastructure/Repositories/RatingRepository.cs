@@ -40,14 +40,13 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<PagedResult<Rating>> GetBookRatingsAsync(Guid bookId, PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.Ratings
-            .Where(r => r.BookId == bookId)
+        var baseQuery = _context.Ratings.Where(r => r.BookId == bookId);
+
+        var totalCount = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
             .Include(r => r.User)
-            .OrderByDescending(r => r.CreatedAt);
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
+            .OrderByDescending(r => r.CreatedAt)
             .Skip((paging.Page - 1) * paging.PageSize)
             .Take(paging.PageSize)
             .ToListAsync(ct);
@@ -90,15 +89,14 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<PagedResult<Rating>> GetUserRatingsAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.Ratings
-            .Where(r => r.UserId == userId)
+        var baseQuery = _context.Ratings.Where(r => r.UserId == userId);
+
+        var totalCount = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
             .Include(r => r.Book)
             .Include(r => r.User)
-            .OrderByDescending(r => r.UpdatedAt);
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
+            .OrderByDescending(r => r.UpdatedAt)
             .Skip((paging.Page - 1) * paging.PageSize)
             .Take(paging.PageSize)
             .ToListAsync(ct);
@@ -108,14 +106,14 @@ public sealed class RatingRepository : IRatingRepository
 
     public async Task<PagedResult<Rating>> GetRecentRatingsAsync(PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.Ratings
+        var baseQuery = _context.Ratings.AsQueryable();
+
+        var totalCount = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
             .Include(r => r.User)
             .Include(r => r.Book)
-            .OrderByDescending(r => r.CreatedAt);
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
+            .OrderByDescending(r => r.CreatedAt)
             .Skip((paging.Page - 1) * paging.PageSize)
             .Take(paging.PageSize)
             .ToListAsync(ct);
