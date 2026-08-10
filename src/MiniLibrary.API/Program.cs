@@ -224,6 +224,21 @@ using (var scope = app.Services.CreateScope())
     if (db.Database.IsRelational())
     {
         db.Database.Migrate();
+
+        // Data migration: rename badge types from Spanish to English (idempotent)
+        await db.Database.ExecuteSqlRawAsync(@"
+            UPDATE [Badges] SET [BadgeType] = 'FirstLoan' WHERE [BadgeType] = 'PrimerPrestamo';
+            UPDATE [Badges] SET [BadgeType] = 'NoviceReader' WHERE [BadgeType] = 'LectorNovato';
+            UPDATE [Badges] SET [BadgeType] = 'AvidReader' WHERE [BadgeType] = 'LectorAvido';
+            UPDATE [Badges] SET [BadgeType] = 'ExpertReader' WHERE [BadgeType] = 'LectorExperto';
+            UPDATE [Badges] SET [BadgeType] = 'Centenarian' WHERE [BadgeType] = 'Centenario';
+            UPDATE [Badges] SET [BadgeType] = 'LiteraryCritic' WHERE [BadgeType] = 'CriticoLiterario';
+            UPDATE [Badges] SET [BadgeType] = 'CommunityVoice' WHERE [BadgeType] = 'VozDeLaComunidad';
+            UPDATE [Badges] SET [BadgeType] = 'Explorer' WHERE [BadgeType] = 'Explorador';
+            UPDATE [Badges] SET [BadgeType] = 'Polymath' WHERE [BadgeType] = 'Polimata';
+            UPDATE [Badges] SET [BadgeType] = 'Punctual' WHERE [BadgeType] = 'Puntual';
+            UPDATE [Badges] SET [BadgeType] = 'ReaderOfTheMonth' WHERE [BadgeType] = 'LectorDelMes';
+        ");
     }
 }
 

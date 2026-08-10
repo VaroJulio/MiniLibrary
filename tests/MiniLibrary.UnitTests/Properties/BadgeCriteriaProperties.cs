@@ -16,17 +16,17 @@ public class BadgeCriteriaProperties
     // Badge thresholds (must match EvaluateBadgesCommandHandler)
     private static readonly (BadgeType Type, int Threshold)[] LoanBadges =
     [
-        (BadgeType.PrimerPrestamo, 1),
-        (BadgeType.LectorNovato, 5),
-        (BadgeType.LectorAvido, 20),
-        (BadgeType.LectorExperto, 50),
-        (BadgeType.Centenario, 100),
+        (BadgeType.FirstLoan, 1),
+        (BadgeType.NoviceReader, 5),
+        (BadgeType.AvidReader, 20),
+        (BadgeType.ExpertReader, 50),
+        (BadgeType.Centenarian, 100),
     ];
 
     private static readonly (BadgeType Type, int Threshold)[] CategoryBadges =
     [
-        (BadgeType.Explorador, 5),
-        (BadgeType.Polimata, 10),
+        (BadgeType.Explorer, 5),
+        (BadgeType.Polymath, 10),
     ];
 
     // ── Property 16a: Loan-based badges awarded iff threshold met ────────────────
