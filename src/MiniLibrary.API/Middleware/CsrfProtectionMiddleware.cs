@@ -50,36 +50,60 @@ public class CsrfProtectionMiddleware
             return;
         }
 
-        // Validate CSRF token: header must match cookie
+        // In cross-origin deployments, the browser sends the XSRF-TOKEN cookie
+        // but JavaScript cannot read third-party cookies via document.cookie.
+        // We use a defense-in-depth approach:
+        // 1. If the X-XSRF-TOKEN header is present → validate double-submit (standard)
+        // 2. If the header is missing but request has a custom header (X-Correlation-Id)
+        //    → the request must have passed CORS preflight, which already validates origin.
+        //    A cross-site attacker cannot set custom headers without CORS permission.
         var cookieToken = context.Request.Cookies[CookieTokenService.CsrfTokenCookie];
         var headerToken = context.Request.Headers[CookieTokenService.CsrfHeaderName].FirstOrDefault();
 
-        if (string.IsNullOrEmpty(cookieToken) || string.IsNullOrEmpty(headerToken))
+        // Standard double-submit validation when both are present
+        if (!string.IsNullOrEmpty(cookieToken) && !string.IsNullOrEmpty(headerToken))
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await context.Response.WriteAsJsonAsync(new
+            // Cookie values may be URL-encoded by the browser; decode for comparison
+            var decodedCookieToken = Uri.UnescapeDataString(cookieToken);
+            if (!string.Equals(decodedCookieToken, headerToken, StringComparison.Ordinal))
             {
-                type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-                title = "CSRF validation failed",
-                status = 403,
-                detail = "Missing CSRF token. Include X-XSRF-TOKEN header with value from XSRF-TOKEN cookie."
-            });
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
+                    title = "CSRF validation failed",
+                    status = 403,
+                    detail = "CSRF token mismatch."
+                });
+                return;
+            }
+            await _next(context);
             return;
         }
 
-        if (!string.Equals(cookieToken, headerToken, StringComparison.Ordinal))
+        // Cross-origin fallback: if the request has a custom header (proving it passed
+        // CORS preflight and originates from an allowed origin), accept it.
+        // This is safe because: browsers enforce CORS preflight for custom headers,
+        // and our CORS policy only allows specific origins.
+        var hasCustomHeader = !string.IsNullOrEmpty(
+            context.Request.Headers["X-Correlation-Id"].FirstOrDefault());
+        var hasOriginHeader = !string.IsNullOrEmpty(
+            context.Request.Headers.Origin.FirstOrDefault());
+
+        if (hasCustomHeader && hasOriginHeader)
         {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            await context.Response.WriteAsJsonAsync(new
-            {
-                type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-                title = "CSRF validation failed",
-                status = 403,
-                detail = "CSRF token mismatch."
-            });
+            await _next(context);
             return;
         }
 
-        await _next(context);
+        // No valid CSRF proof found
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        await context.Response.WriteAsJsonAsync(new
+        {
+            type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
+            title = "CSRF validation failed",
+            status = 403,
+            detail = "Missing CSRF token. Include X-XSRF-TOKEN header with value from XSRF-TOKEN cookie."
+        });
     }
 }
