@@ -38,14 +38,13 @@ public sealed class LoanRepository : ILoanRepository
 
     public async Task<PagedResult<BookLoan>> GetUserHistoryAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.BookLoans
-            .Where(l => l.UserId == userId)
+        var baseQuery = _context.BookLoans.Where(l => l.UserId == userId);
+
+        var totalCount = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
             .Include(l => l.Book)
-            .OrderByDescending(l => l.BorrowedAt);
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
+            .OrderByDescending(l => l.BorrowedAt)
             .Skip((paging.Page - 1) * paging.PageSize)
             .Take(paging.PageSize)
             .ToListAsync(ct);
@@ -57,15 +56,15 @@ public sealed class LoanRepository : ILoanRepository
     {
         var now = DateTime.UtcNow;
 
-        var query = _context.BookLoans
-            .Where(l => l.ReturnedAt == null && l.DueDate < now)
+        var baseQuery = _context.BookLoans
+            .Where(l => l.ReturnedAt == null && l.DueDate < now);
+
+        var totalCount = await baseQuery.CountAsync(ct);
+
+        var items = await baseQuery
             .Include(l => l.Book)
             .Include(l => l.User)
-            .OrderBy(l => l.DueDate);
-
-        var totalCount = await query.CountAsync(ct);
-
-        var items = await query
+            .OrderBy(l => l.DueDate)
             .Skip((paging.Page - 1) * paging.PageSize)
             .Take(paging.PageSize)
             .ToListAsync(ct);

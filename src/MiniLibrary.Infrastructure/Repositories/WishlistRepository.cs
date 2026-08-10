@@ -21,16 +21,15 @@ public sealed class WishlistRepository : IWishlistRepository
 
     public async Task<PagedResult<WishlistEntry>> GetUserWishlistAsync(Guid userId, PaginationParams paging, CancellationToken ct)
     {
-        var query = _context.WishlistEntries
-            .Where(w => w.UserId == userId)
-            .Include(w => w.Book)
-            .OrderByDescending(w => w.AddedAt);
+        var baseQuery = _context.WishlistEntries.Where(w => w.UserId == userId);
 
-        var totalCount = await query.CountAsync(ct);
+        var totalCount = await baseQuery.CountAsync(ct);
 
         var pageSize = Math.Min(paging.PageSize, 20);
 
-        var items = await query
+        var items = await baseQuery
+            .Include(w => w.Book)
+            .OrderByDescending(w => w.AddedAt)
             .Skip((paging.Page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
