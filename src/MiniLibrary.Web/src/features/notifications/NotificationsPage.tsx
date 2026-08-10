@@ -5,19 +5,25 @@ import {
   CardActionArea,
   CardContent,
   Chip,
+  IconButton,
   Pagination,
   Skeleton,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import { useNotifications, useMarkRead } from './hooks/useNotifications';
+import { isSoundMuted, setSoundMuted } from './hooks/useNotificationSound';
 import { EmptyState } from '@/components/EmptyState';
 
 const PAGE_SIZE = 20;
 
 export default function NotificationsPage() {
   const [page, setPage] = useState(1);
+  const [muted, setMuted] = useState(isSoundMuted);
   const { data, isLoading } = useNotifications(page, PAGE_SIZE);
   const markReadMutation = useMarkRead();
 
@@ -27,13 +33,24 @@ export default function NotificationsPage() {
     }
   };
 
+  const handleToggleMute = () => {
+    const newValue = !muted;
+    setSoundMuted(newValue);
+    setMuted(newValue);
+  };
+
   return (
     <Box>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 3 }}>
         <NotificationsIcon color="primary" />
-        <Typography variant="h4" component="h1" fontWeight={700}>
+        <Typography variant="h4" component="h1" fontWeight={700} sx={{ flexGrow: 1 }}>
           Notifications
         </Typography>
+        <Tooltip title={muted ? 'Unmute notification sounds' : 'Mute notification sounds'}>
+          <IconButton onClick={handleToggleMute} aria-label="toggle notification sound">
+            {muted ? <VolumeOffIcon color="disabled" /> : <VolumeUpIcon color="primary" />}
+          </IconButton>
+        </Tooltip>
       </Stack>
 
       {isLoading ? (
