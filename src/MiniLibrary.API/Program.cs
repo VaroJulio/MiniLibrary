@@ -23,13 +23,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Configure CORS — allow the frontend origin with credentials (HttpOnly cookies)
-var frontendUrl = builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+// Configure CORS — allow the frontend origin(s) with credentials (HttpOnly cookies)
+// Supports comma-separated origins in App:FrontendUrl for multiple environments
+var frontendUrlConfig = builder.Configuration["App:FrontendUrl"] ?? "http://localhost:3000";
+var allowedOrigins = frontendUrlConfig
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .Select(url => url.TrimEnd('/'))
+    .ToArray();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins(frontendUrl.TrimEnd('/'))
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

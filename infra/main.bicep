@@ -36,6 +36,9 @@ param emailSenderEmail string = ''
 @secure()
 param emailAppPassword string = ''
 
+@description('Frontend URL for CORS (Azure Static Web Apps URL)')
+param frontendUrl string = 'https://kind-sea-0f0e98210.7.azurestaticapps.net'
+
 @description('Container image for API')
 param apiImage string = 'ghcr.io/varojulio/minilibrary-api:latest'
 
@@ -123,6 +126,15 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
         external: true
         targetPort: 5000
         transport: 'http'
+        // CORS handled at application level (ASP.NET Core) for credentials support.
+        // Set allowedOrigins to the frontend URL with allowCredentials to prevent
+        // the ingress from blocking preflight requests before they reach the app.
+        corsPolicy: {
+          allowedOrigins: [frontendUrl]
+          allowedMethods: ['*']
+          allowedHeaders: ['*']
+          allowCredentials: true
+        }
       }
       registries: []
     }
@@ -154,7 +166,7 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-11-02-preview' = {
             { name: 'Email__SenderName', value: 'MiniLibrary' }
             { name: 'Email__AppPassword', value: emailAppPassword }
             { name: 'App__PublicUrl', value: 'https://${baseName}-api.${containerAppEnv.properties.defaultDomain}' }
-            { name: 'App__FrontendUrl', value: 'https://${baseName}-web.azurestaticapps.net' }
+            { name: 'App__FrontendUrl', value: '${frontendUrl},https://${baseName}-web.azurestaticapps.net' }
           ]
         }
       ]
